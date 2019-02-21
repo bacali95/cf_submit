@@ -47,7 +47,7 @@ def comp(source):
         Popen("javac %s" % (source), shell=True).wait()
         Popen(["mv", info[0], "workspace"]).wait()
     elif lang == "py":
-        Popen(["mv", source, "workspace"]).wait()
+        Popen(["cp", source, "workspace"]).wait()
 
 
 def init_workspace(generator, tle_generator, checker, correct_solution):
@@ -188,7 +188,7 @@ def create_file(source, language):
     else:
         return ""
 
-    for_hak_source = open(os.path.join(dir_path, "workspace", file_name), "w")
-    for_hak_source.write(source)
-    for_hak_source.close()
+    for_hack_source = open(os.path.join(dir_path, "workspace", file_name), "w")
+    for_hack_source.write(source)
+    for_hack_source.close()
     return file_name

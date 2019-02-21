@@ -3,6 +3,7 @@ from subprocess import Popen
 from robobrowser import RoboBrowser
 
 from .cf_colors import colors
+from . import cf_login
 
 
 def parse(group, contest, problem):
@@ -12,13 +13,17 @@ def parse(group, contest, problem):
           (colors.WARNING, str(contest + problem), colors.ENDC))
     j = 0
     try:
-        browser = RoboBrowser(parser="lxml")
-        if group is None:
-            browser.open("https://codeforces.com/contest/%s/problem/%s"
-                         % (contest, problem))
+        browser = cf_login.login()
+        if group is not None:
+            url = "https://codeforces.com/group/%s/contest/%s/problem/%s" % (
+                group, contest, problem)
+        elif len(str(contest)) >= 6:
+            url = "https://codeforces.com/gym/%s/problem/%s" % (
+                contest, problem)
         else:
-            browser.open("https://codeforces.com/group/%s/contest/%s/problem/%s"
-                         % (group, contest, problem))
+            url = "https://codeforces.com/contest/%s/problem/%s" % (
+                contest, problem)
+        browser.open(url)
         page = browser.parsed
         sample_test = page.find("div", class_="sample-test")
         inputs = sample_test.find_all("div", class_="input")
@@ -45,6 +50,6 @@ def parse(group, contest, problem):
 
 
 def create_file(source, file_name):
-    for_hak_source = open(os.path.join("files", file_name), "w")
-    for_hak_source.write(source)
-    for_hak_source.close()
+    file = open(os.path.join("files", file_name), "w")
+    file.write(source)
+    file.close()

@@ -1,11 +1,7 @@
 #!/bin/bash
 
 _commands(){
-  echo "con gym gcon hack ext ext info login peek problems standings submit time watch open parse test"
-}
-
-_options(){
-  echo "-h -p -l -c -w -v -a -t -s -g -n --help --prob --lang --contest --group --watch --verbose --all --top --sort --guru --number"
+  echo "con gym gcon contests gyms groups gcontests hack info login peek problems standings submit time watch open parse test -h --help"
 }
 
 _cf() {
@@ -15,15 +11,85 @@ _cf() {
   cur="${COMP_WORDS[COMP_CWORD]}"
   _script_commands=""
 
-  if [[ $cur == -* ]]; then
-    _script_commands=$(_options)
-  else 
-    _script_commands=$(_commands)
-  fi
-
-  if [[ $_script_commands != *$cur* || $cur == "" ]]; then
-    _script_commands=$(ls)
-  fi
+  case $COMP_CWORD in
+    1)
+      _script_commands=$(_commands)
+      ;;
+    *)
+      case "${COMP_WORDS[COMP_CWORD-1]}" in
+        "login")
+          _script_commands="--handle"
+          ;;
+        "con" | "gym")
+          _script_commands="--id"
+          ;; 
+        "gcon")
+          _script_commands="--group"
+          ;;
+        "open" | "parse")
+          _script_commands="--prob"
+          ;;
+        "test")
+          _script_commands=$(ls)
+          ;;
+        "problems")
+          _script_commands="-c --contest --group -v --verbose -s --sort"
+          ;;
+        "standings")
+          _script_commands="-c --contest --group -v --verbose -s --sort -t --top -a --all"
+          ;;
+        "submit")
+          _script_commands="-p --prob -w --watch -l --lang $(ls)"
+          ;;
+        "gcontests")
+          _script_commands="--group --pretty-off"
+          ;;
+        "contests" | "gyms" | "groups" | "problems")
+          _script_commands="--pretty-off"
+          ;;
+        "hack")
+          _script_commands="-n --number -p --prob $(ls)"
+          ;;
+        "hack")
+          _script_commands=$(ls)
+          ;;
+        "peek" | "watch" | "time" | "info")
+          ;;
+        "-p" | "--prob")
+          _script_commands=$(cf problems --pretty-off)
+          ;;
+        "--group")
+          _script_commands=$(cf groups --pretty-off)
+          ;;
+        "--id" | "--contest")
+          case "${COMP_WORDS[1]}" in
+            "con")
+              _script_commands=$(cf contests $cur --pretty-off)
+              ;;
+            "gym")
+              _script_commands=$(cf gyms $cur --pretty-off)
+              ;;
+            "gcon")
+              _script_commands=$(cf gcontests --group ${COMP_WORDS[3]} --pretty-off)
+              ;;
+          esac
+          ;;
+        *)
+          case "${COMP_WORDS[COMP_CWORD-2]}" in
+            "--group")
+              case "${COMP_WORDS[1]}" in
+                "gcontests")
+                  _script_commands="--pretty-off"
+                  ;;
+                "gcon")
+                  _script_commands="--id"
+                  ;;
+              esac
+            ;;
+          esac
+      esac
+      ;;
+  esac
 
   COMPREPLY=( $(compgen -W "${_script_commands}" -- ${cur}) )
 

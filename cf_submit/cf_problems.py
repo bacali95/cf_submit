@@ -3,7 +3,7 @@ from prettytable import PrettyTable
 from .cf_colors import colors
 
 
-def print_prob(raw_html, contest, verbose, sort):
+def print_prob(raw_html, contest, verbose, sort, pretty_off):
     stats = PrettyTable()
 
     # header
@@ -12,12 +12,16 @@ def print_prob(raw_html, contest, verbose, sort):
 
     # get problems table
     probraw = raw_html.find_all("table", class_="problems")[0].find_all("tr")
+    names = []
     for row in probraw[1:]:
         tablerow = []
         if not verbose and row.has_attr("class") and row["class"][0] == "accepted-problem":
             continue
         cell = row.find_all("td")
+        if len(cell) < 4:
+            continue
         tablerow.append(str(cell[0].get_text(strip=True)))
+        names.append(str(cell[0].get_text(strip=True)))
         tablerow.append(str(cell[1].find("a").get_text(strip=True)))
         numstring = str(cell[3].get_text(strip=True))
         if len(numstring) == 0:
@@ -25,6 +29,10 @@ def print_prob(raw_html, contest, verbose, sort):
         else:
             tablerow.append(int(numstring[1:]))
         stats.add_row(tablerow)
+
+    if pretty_off:
+        print(*names)
+        return
 
     # printing
     stats.hrules = True

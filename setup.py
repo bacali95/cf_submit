@@ -2,11 +2,6 @@ from setuptools.command.install import install
 from setuptools import setup, dist
 
 
-def pre_install():
-    import os
-    os.system('pip install -r cf_submit/requirements.txt')
-
-
 def post_install():
     import os
     print("Copying cf_ckecher to /usr/bin")
@@ -18,7 +13,6 @@ def post_install():
 
 class CustomInstallCommand(install):
     def run(self):
-        pre_install()
         install.run(self)
         post_install()
 
@@ -28,7 +22,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="cf_submit",
-    version="1.0.3",
+    version="1.1.0",
     scripts=['cf'],
     author="Nasreddine Bac Ali",
     author_email="nasreddine.bacali95@gmail.com",

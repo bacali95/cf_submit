@@ -6,6 +6,8 @@ import webbrowser
 
 from . import cf_login
 from . import cf_problems
+from . import cf_contests
+from . import cf_groups
 from . import cf_standings
 from . import cf_submit
 from . import cf_hack
@@ -42,7 +44,7 @@ def print_standings(group, contest, verbose, top, sort, showall):
 
 # print problem stats
 
-def print_problems(group, contest, verbose, sort):
+def print_problems(group, contest, verbose, sort, pretty_off):
     browser = cf_login.login()
     if group is not None:
         url = "http://codeforces.com/group/" + group + "/contest/" + contest
@@ -53,7 +55,7 @@ def print_problems(group, contest, verbose, sort):
     browser.open(url)
     if sort is None:
         sort = "solves"
-    cf_problems.print_prob(browser.parsed, contest, verbose, sort)
+    cf_problems.print_prob(browser.parsed, contest, verbose, sort, pretty_off)
 
 
 # get time
@@ -118,9 +120,21 @@ def main():
                         nargs='*', default=None,
                         help="file to submit"
                         )
+    parser.add_argument("--handle",
+                        action="store", default=None,
+                        help="specify handle, example: --handle _bacali"
+                        )
+    parser.add_argument("--id",
+                        action="store", default=None,
+                        help="specify contest or gym id, example: --id 1117"
+                        )
     parser.add_argument("-p", "--prob",
                         action="store", default=None,
                         help="specify problem, example: -p 845a"
+                        )
+    parser.add_argument("--pretty-off",
+                        action="store_true", default=False,
+                        help="turn pretty print off"
                         )
     parser.add_argument("-l", "--lang",
                         action="store", default=None,
@@ -132,7 +146,7 @@ def main():
                         )
     parser.add_argument("--group",
                         action="store", default=None,
-                        help="specify group when getting standings"
+                        help="specify group"
                         )
     parser.add_argument("-w", "--watch",
                         action="store_true", default=False,
@@ -178,15 +192,15 @@ def main():
     if args.command == "gcon":
         # set group contest
         # check if bad input
-        if len(args.option) > 2:
-            print("Bad input")
-            return
-        if len(args.option) == 2:
-            group = args.option[0]
-            contest = args.option[1]
-        else:
+        if args.group is None:
             group = input("Group Id: ")
+        else:
+            group = args.group
+
+        if args.id is None:
             contest = input("Contest number: ")
+        else:
+            contest = args.id
         groupfile = open(group_loc, "w")
         groupfile.write(group)
         groupfile.close()
@@ -199,11 +213,8 @@ def main():
     elif args.command == "gym" or args.command == "con":
         # set contest
         # check if bad input
-        if len(args.option) > 1:
-            print("Bad input")
-            return
-        if len(args.option) == 1:
-            contest = args.option[0]
+        if args.id is not None:
+            contest = args.id
         else:
             contest = input("Contest/Gym number: ")
         if os.path.isfile(group_loc):
@@ -215,7 +226,30 @@ def main():
             print("Gym set to " + contest)
         else:
             print("Contest set to " + contest)
-
+    elif args.command == "groups":
+        if len(args.option) == 0:
+            curr = ""
+        else:
+            curr = str(args.option[0])
+        cf_groups.load_groups(args.pretty_off)
+    elif args.command == "gcontests":
+        if args.group is None:
+            group = input("Group Id: ")
+        else:
+            group = args.group
+        cf_groups.load_contests(group, args.pretty_off)
+    elif args.command == "contests":
+        if len(args.option) == 0:
+            curr = ""
+        else:
+            curr = str(args.option[0])
+        cf_contests.load_contests(False, curr, args.pretty_off)
+    elif args.command == "gyms":
+        if len(args.option) == 0:
+            curr = ""
+        else:
+            curr = str(args.option[0])
+        cf_contests.load_contests(True, curr, args.pretty_off)
     elif args.command == "ext":
         if len(args.option) > 1:
             print("Bad input")
@@ -238,13 +272,10 @@ def main():
 
     elif args.command == "login":
         # set login info
-        if len(args.option) == 0:
+        if args.handle is None:
             cf_login.set_login()
-        elif len(args.option) == 1:
-            cf_login.set_login(args.option[0])
         else:
-            print("Bad Input")
-            return
+            cf_login.set_login(args.handle)
 
     elif args.command == "peek":
         # look at last submission
@@ -277,11 +308,13 @@ def main():
         # look at problem stats
         if args.contest is None and args.group is None:
             print_problems(defaultgroup, defaultcontest,
-                           args.verbose, args.sort)
+                           args.verbose, args.sort, args.pretty_off)
         elif args.contest is None:
-            print_problems(args.group, defaultcontest, args.verbose, args.sort)
+            print_problems(args.group, defaultcontest,
+                           args.verbose, args.sort, args.pretty_off)
         else:
-            print_problems(args.group, args.contest, args.verbose, args.sort)
+            print_problems(args.group, args.contest,
+                           args.verbose, args.sort, args.pretty_off)
 
     elif args.command == "submit":
         # get default ext
@@ -315,13 +348,14 @@ def main():
         cf_test.test(args.option[0], args.lang)
     elif args.command == "parse":
         if args.prob is None:
-            print("Please select problem to parse!!")
-            return
-        if len(args.prob) < 3:
-            cf_parse.parse(defaultgroup, defaultcontest,
-                           str(args.prob).upper())
+            problem = input("Problem Id: ")
         else:
-            splitted = re.split(r"(\D+)", args.prob)
+            problem = args.prob
+        if len(problem) < 3:
+            cf_parse.parse(defaultgroup, defaultcontest,
+                           str(problem).upper())
+        else:
+            splitted = re.split(r"(\D+)", problem)
             cf_parse.parse(defaultgroup, splitted[0], str(
                 splitted[1]+splitted[2]).upper())
     elif args.command == "open":
