@@ -3,8 +3,14 @@ import random
 import getpass
 from robobrowser import RoboBrowser
 
+from . import cf_io_utils
+
 root = '7'
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
+config_loc = os.path.join(cache_loc, "config.json")
+config = cf_io_utils.read_data_from_file(config_loc)
+if config is None:
+    config = dict()
 
 
 # converter
@@ -43,23 +49,6 @@ def encode(s):
     return res
 
 
-def get_secret(inclupass):
-    handle = None
-    password = None
-    secret_loc = os.path.join(cache_loc, "secret")
-    if os.path.isfile(secret_loc):
-        secretfile = open(secret_loc, "r")
-        rawdata = secretfile.read().rstrip('\n').split()
-        handle = decode(rawdata[0])
-        if inclupass:
-            password = decode(rawdata[1])
-        secretfile.close()
-    if inclupass:
-        return handle, password
-    else:
-        return handle
-
-
 # set login
 
 def set_login(handle=None):
@@ -80,17 +69,17 @@ def set_login(handle=None):
         print("Login Failed.")
         return
     else:
-        secret_loc = os.path.join(cache_loc, "secret")
-        secretfile = open(secret_loc, "w")
-        secretfile.write(encode(handle) + " " + encode(password))
-        secretfile.close()
+        config["handle"] = handle
+        config["password"] = encode(password)
+        cf_io_utils.write_data_in_file(config, config_loc)
         print("Successfully logged in as " + handle)
 
 
 # login
 
 def login():
-    handle, password = get_secret(True)
+    handle = config["handle"]
+    password = decode(config.get("password", None))
 
     browser = RoboBrowser(parser="lxml")
     browser.open("http://codeforces.com/enter")

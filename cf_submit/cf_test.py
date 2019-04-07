@@ -55,7 +55,7 @@ def execute(source, lang, info, input_file, output_file):
     if lang == "cpp" or lang == "c":
         cmd = "./%s" % (info[0])
     elif lang == "java":
-        cmd = "java %s" % (info[0])
+        cmd = "java -DLOCAL %s" % (info[0])
     elif lang == "py2":
         cmd = "python2 %s" % (source)
     elif lang == "py3":
@@ -69,8 +69,10 @@ def execute(source, lang, info, input_file, output_file):
 
 def comp(source, lang, info):
     if lang == "cpp":
-        Popen("g++ %s -O2 -o %s" % (source, info[0]), shell=True).wait()
+        Popen("g++ %s -DLOCAL -O2 -o %s" %
+              (source, info[0]), shell=True).wait()
     elif lang == "c":
-        Popen("gcc %s -O2 -o %s" % (source, info[0]), shell=True).wait()
+        Popen("gcc %s -DLOCAL -O2 -o %s" %
+              (source, info[0]), shell=True).wait()
     elif lang == "java":
         Popen("javac %s" % (source), shell=True).wait()

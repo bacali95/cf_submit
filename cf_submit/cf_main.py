@@ -13,6 +13,7 @@ from . import cf_submit
 from . import cf_hack
 from . import cf_parse
 from . import cf_test
+from . import cf_io_utils
 from .cf_colors import colors
 
 
@@ -62,6 +63,9 @@ def print_problems(group, contest, verbose, sort, pretty_off):
 
 def print_time(group, contest):
     browser = cf_login.login()
+    if contest is None:
+        print("Set contest first with: cf con/gym --id 1111")
+        return
     if group is not None:
         url = "http://codeforces.com/group/" + group + "/contest/" + contest + "/submit"
     elif len(str(contest)) >= 6:
@@ -84,19 +88,11 @@ def main():
     cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
     if os.path.isdir(cache_loc) is False:
         os.mkdir(cache_loc)
-    # get default gym contest
-    defaultcontest = None
-    defaultgroup = None
-    contest_loc = os.path.join(cache_loc, "contestid")
-    group_loc = os.path.join(cache_loc, "groupid")
-    if os.path.isfile(contest_loc):
-        contestfile = open(contest_loc, "r")
-        defaultcontest = contestfile.read().rstrip('\n')
-        contestfile.close()
-    if os.path.isfile(group_loc):
-        groupfile = open(group_loc, "r")
-        defaultgroup = groupfile.read().rstrip('\n')
-        groupfile.close()
+    config_loc = os.path.join(cache_loc, "config.json")
+    config = cf_io_utils.read_data_from_file(config_loc)
+    if config is None:
+        config = dict()
+        cf_io_utils.write_data_in_file(config, config_loc)
     # ------------------- argparse --------------------
     parser = argparse.ArgumentParser(
         description="Command line tool to submit to codeforces", formatter_class=argparse.RawTextHelpFormatter)
@@ -201,12 +197,9 @@ def main():
             contest = input("Contest number: ")
         else:
             contest = args.id
-        groupfile = open(group_loc, "w")
-        groupfile.write(group)
-        groupfile.close()
-        contestfile = open(contest_loc, "w")
-        contestfile.write(contest)
-        contestfile.close()
+        config["contest"] = contest
+        config["group"] = group
+        cf_io_utils.write_data_in_file(config, config_loc)
         print("Group set to " + group)
         print("Contest set to " + contest)
 
@@ -217,11 +210,8 @@ def main():
             contest = args.id
         else:
             contest = input("Contest/Gym number: ")
-        if os.path.isfile(group_loc):
-            os.remove(group_loc)
-        contestfile = open(contest_loc, "w")
-        contestfile.write(contest)
-        contestfile.close()
+        config["contest"] = contest
+        cf_io_utils.write_data_in_file(config, config_loc)
         if len(contest) >= 6:
             print("Gym set to " + contest)
         else:
@@ -237,19 +227,19 @@ def main():
             group = input("Group Id: ")
         else:
             group = args.group
-        cf_groups.load_contests(group, args.pretty_off)
+        cf_groups.load_contests(args.pretty_off)
     elif args.command == "contests":
         if len(args.option) == 0:
             curr = ""
         else:
             curr = str(args.option[0])
-        cf_contests.load_contests(False, curr, args.pretty_off)
+        cf_contests.load_contests(args.pretty_off)
     elif args.command == "gyms":
         if len(args.option) == 0:
             curr = ""
         else:
             curr = str(args.option[0])
-        cf_contests.load_contests(True, curr, args.pretty_off)
+        cf_contests.load_contests(args.pretty_off)
     elif args.command == "ext":
         if len(args.option) > 1:
             print("Bad input")
@@ -258,17 +248,14 @@ def main():
             defext = args.option[0]
         else:
             defext = input("Default file extension: ")
-        defext_loc = os.path.join(cache_loc, "default_ext")
-        extfile = open(defext_loc, "w")
-        extfile.write(defext)
-        extfile.close()
+        config["ext"] = defext
+        cf_io_utils.write_data_in_file(config, config_loc)
         print("Default extension set to " + defext)
 
     elif args.command == "info":
-        handle = cf_login.get_secret(False)
-        print("handle: " + handle)
-        print("groupID: " + str(defaultgroup))
-        print("contestID: " + str(defaultcontest))
+        print("handle: " + str(config.get("handle", None)))
+        print("groupID: " + str(config.get("group", None)))
+        print("contestID: " + str(config.get("contest", None)))
 
     elif args.command == "login":
         # set login info
@@ -279,63 +266,37 @@ def main():
 
     elif args.command == "peek":
         # look at last submission
-        cf_submit.peek(cf_login.get_secret(False))
+        cf_submit.peek(config.get("handle", None))
 
     elif args.command == "watch":
-        cf_submit.watch(cf_login.get_secret(False))
+        cf_submit.watch(config.get("handle", None))
 
     elif args.command == "time":
-        if args.contest is None and args.group is None:
-            print_time(defaultgroup, defaultcontest)
-        elif args.contest is None:
-            print_time(args.group, defaultcontest)
-        else:
-            print_time(args.group, args.contest)
+        print_time(args.group or config.get("group", None),
+                   args.contest or config.get("contest", None))
 
     elif args.command == "standings":
         # look at standings
-        if args.contest is None and args.group is None:
-            print_standings(defaultgroup, defaultcontest, args.verbose,
-                            args.top, args.sort, args.all)
-        elif args.contest is None:
-            print_standings(args.group, defaultcontest, args.verbose,
-                            args.top, args.sort, args.all)
-        else:
-            print_standings(args.group, args.contest, args.verbose,
-                            args.top, args.sort, args.all)
+        print_standings(args.group or config.get("group", None),
+                        args.contest or config.get("contest", None),
+                        args.verbose, args.top, args.sort, args.all)
 
     elif args.command == "problems":
         # look at problem stats
-        if args.contest is None and args.group is None:
-            print_problems(defaultgroup, defaultcontest,
-                           args.verbose, args.sort, args.pretty_off)
-        elif args.contest is None:
-            print_problems(args.group, defaultcontest,
-                           args.verbose, args.sort, args.pretty_off)
-        else:
-            print_problems(args.group, args.contest,
-                           args.verbose, args.sort, args.pretty_off)
+        print_problems(args.group or config.get("group", None),
+                       args.contest or config.get("contest", None),
+                       args.verbose, args.sort, args.pretty_off)
 
     elif args.command == "submit":
-        # get default ext
-        defextension = None
-        defext_loc = os.path.join(cache_loc, "default_ext")
-        if os.path.isfile(defext_loc):
-            extfile = open(defext_loc, "r")
-            defextension = extfile.read().rstrip('\n')
-            extfile.close()
-        # get handle
-        defaulthandle = cf_login.get_secret(False)
         # open browser
         browser = cf_login.login()
-        if args.contest is not None and args.group is not None:
-            defaultgroup = args.group
-            defaultcontest = args.contest
-        elif args.contest is not None:
-            defaultcontest = args.contest
         if browser is not None:
             cf_submit.submit_files(
-                browser, defaulthandle, defaultgroup, defaultcontest, args.prob, defextension,
+                browser, config.get("handle", None),
+                args.group or config.get("group", None),
+                args.contest or config.get("contest", None),
+                args.prob,
+                config.get("ext", None),
                 args.lang, args.option, args.watch, args.guru
             )
     elif args.command == "test":
@@ -352,20 +313,21 @@ def main():
         else:
             problem = args.prob
         if len(problem) < 3:
-            cf_parse.parse(defaultgroup, defaultcontest,
+            cf_parse.parse(config.get("group", None),
+                           config.get("contest", None),
                            str(problem).upper())
         else:
             splitted = re.split(r"(\D+)", problem)
-            cf_parse.parse(defaultgroup, splitted[0], str(
+            cf_parse.parse(config.get("group", None), splitted[0], str(
                 splitted[1]+splitted[2]).upper())
     elif args.command == "open":
         if args.prob is None:
             print("Please select problem to open!!")
             return
-        if defaultgroup is None:
+        if config.get("group", None) is None:
             if len(args.prob) < 3:
                 webbrowser.open("https://codeforces.com/contest/%s/problem/%s"
-                                % (defaultcontest, str(args.prob).upper()), 2)
+                                % (config.get("contest", None), str(args.prob).upper()), 2)
             else:
                 splitted = re.split(r"(\D+)", args.prob)
                 webbrowser.open("https://codeforces.com/contest/%s/problem/%s"
@@ -373,11 +335,13 @@ def main():
         else:
             if len(args.prob) < 3:
                 webbrowser.open("https://codeforces.com/group/%s/contest/%s/problem/%s"
-                                % (defaultgroup, defaultcontest, str(args.prob).upper()), 2)
+                                % (config.get("group", None), config.get("contest", None),
+                                   str(args.prob).upper()), 2)
             else:
                 splitted = re.split(r"(\D+)", args.prob)
                 webbrowser.open("https://codeforces.com/group/%s/contest/%s/problem/%s"
-                                % (defaultgroup, splitted[0], str(splitted[1]+splitted[2]).upper()), 2)
+                                % (config.get("contest", None), splitted[0],
+                                   str(splitted[1]+splitted[2]).upper()), 2)
     elif args.command == "hack":
         if len(args.option) < 3:
             print(
@@ -388,10 +352,10 @@ def main():
             return
 
         if len(args.option) == 3:
-            cf_hack.begin_hack(defaultcontest, args.prob, args.option[0], None,
+            cf_hack.begin_hack(config.get("contest", None), args.prob, args.option[0], None,
                                args.option[1], args.option[2], args.number)
         else:
-            cf_hack.begin_hack(defaultcontest, args.prob, args.option[0], args.option[1],
+            cf_hack.begin_hack(config.get("contest", None), args.prob, args.option[0], args.option[1],
                                args.option[2], args.option[3], args.number)
     else:
         print("UNKNOWN COMMAND")

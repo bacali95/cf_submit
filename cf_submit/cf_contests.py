@@ -1,23 +1,17 @@
+import os
 import requests
 from prettytable import PrettyTable
 
+from . import cf_io_utils
 
-def load_contests(gym, curr, pretty_off):
-    if gym:
-        response = requests.get(
-            url="https://codeforces.com/api/contest.list?gym=true")
-    else:
-        response = requests.get(
-            url="https://codeforces.com/api/contest.list?gym=false")
-    result = response.json()['result']
-    if gym:
-        data = list(filter(lambda x: str(x['id']).startswith(
-            curr) and len(str(x['id'])) == 6, result))
-    else:
-        data = list(filter(lambda x: str(x['id']).startswith(curr), result))
+cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
+config_loc = os.path.join(cache_loc, "config.json")
+config = cf_io_utils.read_data_from_file(config_loc)
 
+
+def load_contests(pretty_off):
+    data = config.get("contests", [])
     data.sort(key=lambda x: x['id'], reverse=True)
-
     if pretty_off:
         data = list(map(lambda x: x['id'], data))
         print(*data[0:20])
