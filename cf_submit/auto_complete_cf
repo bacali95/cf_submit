@@ -32,9 +32,6 @@ _cf() {
         "test")
           _script_commands=$(ls)
           ;;
-        "problems")
-          _script_commands="-c --contest --group -v --verbose -s --sort"
-          ;;
         "standings")
           _script_commands="-c --contest --group -v --verbose -s --sort -t --top -a --all"
           ;;
@@ -42,7 +39,7 @@ _cf() {
           _script_commands="-p --prob -w --watch -l --lang $(ls)"
           ;;
         "gcontests")
-          _script_commands="--group --pretty-off"
+          _script_commands="--group"
           ;;
         "contests" | "gyms" | "groups" | "problems")
           _script_commands="--pretty-off"
@@ -61,18 +58,18 @@ _cf() {
         "--group")
           _script_commands=$(cf groups --pretty-off)
           ;;
-        "--id" | "--contest")
+        "--id")
           case "${COMP_WORDS[1]}" in
             "con")
-              _script_commands=$(cf contests $cur --pretty-off)
+              _script_commands=$(cf contests --pretty-off)
               ;;
             "gym")
-              _script_commands=$(cf gyms $cur --pretty-off)
-              ;;
-            "gcon")
-              _script_commands=$(cf gcontests --group ${COMP_WORDS[3]} --pretty-off)
+              _script_commands=$(cf gyms --pretty-off)
               ;;
           esac
+          ;;
+        "--contest")
+          _script_commands=$(cf gcontests --group ${COMP_WORDS[COMP_CWORD-2]} --pretty-off)
           ;;
         *)
           case "${COMP_WORDS[COMP_CWORD-2]}" in
@@ -82,7 +79,7 @@ _cf() {
                   _script_commands="--pretty-off"
                   ;;
                 "gcon")
-                  _script_commands="--id"
+                  _script_commands="--contest"
                   ;;
               esac
             ;;

@@ -7,6 +7,7 @@ import webbrowser
 from . import cf_login
 from . import cf_problems
 from . import cf_contests
+from . import cf_gyms
 from . import cf_groups
 from . import cf_standings
 from . import cf_submit
@@ -41,22 +42,6 @@ def print_standings(group, contest, verbose, top, sort, showall):
         url += "/page/1"
     browser.open(url)
     cf_standings.print_st(browser.parsed, verbose, top, sort)
-
-
-# print problem stats
-
-def print_problems(group, contest, verbose, sort, pretty_off):
-    browser = cf_login.login()
-    if group is not None:
-        url = "http://codeforces.com/group/" + group + "/contest/" + contest
-    elif len(str(contest)) >= 6:
-        url = "http://codeforces.com/gym/" + contest
-    else:
-        url = "http://codeforces.com/contest/" + contest
-    browser.open(url)
-    if sort is None:
-        sort = "solves"
-    cf_problems.print_prob(browser.parsed, contest, verbose, sort, pretty_off)
 
 
 # get time
@@ -193,10 +178,10 @@ def main():
         else:
             group = args.group
 
-        if args.id is None:
+        if args.contest is None:
             contest = input("Contest number: ")
         else:
-            contest = args.id
+            contest = args.contest
         config["contest"] = contest
         config["group"] = group
         cf_io_utils.write_data_in_file(config, config_loc)
@@ -211,35 +196,24 @@ def main():
         else:
             contest = input("Contest/Gym number: ")
         config["contest"] = contest
+        config["group"] = None
         cf_io_utils.write_data_in_file(config, config_loc)
         if len(contest) >= 6:
             print("Gym set to " + contest)
         else:
             print("Contest set to " + contest)
     elif args.command == "groups":
-        if len(args.option) == 0:
-            curr = ""
-        else:
-            curr = str(args.option[0])
         cf_groups.load_groups(args.pretty_off)
     elif args.command == "gcontests":
         if args.group is None:
             group = input("Group Id: ")
         else:
             group = args.group
-        cf_groups.load_contests(args.pretty_off)
+        cf_groups.load_contests(group, args.pretty_off)
     elif args.command == "contests":
-        if len(args.option) == 0:
-            curr = ""
-        else:
-            curr = str(args.option[0])
         cf_contests.load_contests(args.pretty_off)
     elif args.command == "gyms":
-        if len(args.option) == 0:
-            curr = ""
-        else:
-            curr = str(args.option[0])
-        cf_contests.load_contests(args.pretty_off)
+        cf_gyms.load_gyms(args.pretty_off)
     elif args.command == "ext":
         if len(args.option) > 1:
             print("Bad input")
@@ -283,9 +257,7 @@ def main():
 
     elif args.command == "problems":
         # look at problem stats
-        print_problems(args.group or config.get("group", None),
-                       args.contest or config.get("contest", None),
-                       args.verbose, args.sort, args.pretty_off)
+        cf_problems.load_problems(args.pretty_off)
 
     elif args.command == "submit":
         # open browser
