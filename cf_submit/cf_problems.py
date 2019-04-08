@@ -8,7 +8,7 @@ from .cf_colors import colors
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
 config_loc = os.path.join(cache_loc, 'config.json')
 problems_loc = os.path.join(cache_loc, 'problems.json')
-config = cf_io_utils.read_data_from_file(config_loc)
+config = cf_io_utils.read_data_from_file(config_loc) or {}
 contest = config.get('contest', None)
 group = config.get('group', None)
 
