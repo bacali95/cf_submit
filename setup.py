@@ -2,19 +2,13 @@ from setuptools.command.install import install
 from setuptools import setup, dist
 
 
-def post_install():
-    import os
-    print("Copying cf_ckecher to /usr/bin")
-    os.system('cp cf_submit/cf_checker /usr/bin')
-    print("Copying auto_complete_cf to /etc/bash_completion.d")
-    os.system('cp cf_submit/auto_complete_cf /etc/bash_completion.d')
-    os.system('source /etc/bash_completion.d/auto_complete_cf')
-
-
-class CustomInstallCommand(install):
+class InstallCommand(install):
     def run(self):
+        import os
+        os.system('sudo cp cf_submit/cf_checker /usr/bin')
+        os.system('sudo cp cf_submit/auto_complete_cf /etc/bash_completion.d')
+        os.system('source /etc/bash_completion.d/auto_complete_cf')
         install.run(self)
-        post_install()
 
 
 with open("README.md", "r") as fh:
@@ -22,7 +16,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="cf_submit",
-    version="1.1.2",
+    version="1.1.3",
     scripts=['cf'],
     author="Nasreddine Bac Ali",
     author_email="nasreddine.bacali95@gmail.com",
@@ -49,6 +43,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ], cmdclass={
-        'install': CustomInstallCommand
+        'install': InstallCommand
     }
 )
