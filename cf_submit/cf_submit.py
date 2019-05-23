@@ -101,6 +101,8 @@ def submit_problem(browser, group, contest, lang, source, guru):
     elif lang == "rb":
         # Ruby 2.0.0p645
         langcode = "8"
+    elif lang == "kt":
+        langcode = "48"
     elif lang == "java":
         # Java 1.8.0_112
         langcode = "36"
