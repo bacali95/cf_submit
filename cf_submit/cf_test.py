@@ -56,6 +56,8 @@ def execute(source, lang, info, input_file, output_file):
         cmd = "./%s" % (info[0])
     elif lang == "java":
         cmd = "java -DLOCAL %s" % (info[0])
+    elif lang == "kt":
+        cmd = "java -DLOCAL -jar %s" % (info[0]+'.jar')
     elif lang == "py2":
         cmd = "python2 %s" % (source)
     elif lang == "py3":
@@ -76,3 +78,6 @@ def comp(source, lang, info):
               (source, info[0]), shell=True).wait()
     elif lang == "java":
         Popen("javac %s" % (source), shell=True).wait()
+    elif lang == "kt":
+        Popen("kotlinc %s -include-runtime -d %s" %
+              (source, info[0]+'.jar'), shell=True).wait()

@@ -46,6 +46,10 @@ def comp(source):
     elif lang == "java":
         Popen("javac %s" % (source), shell=True).wait()
         Popen(["mv", info[0], "workspace"]).wait()
+    elif lang == "kt":
+        Popen("kotlinc %s -include-runtime -d %s" %
+              (source, info[0]+'.jar'), shell=True).wait()
+        Popen(["mv", info[0]+'.jar', "workspace"]).wait()
     elif lang == "py":
         Popen(["cp", source, "workspace"]).wait()
 
@@ -173,6 +177,8 @@ def create_file(source, language):
         file_name = "noncorrect.cpp"
     elif re.match(r"(.)*GNU(.)*", language):
         file_name = "noncorrect.c"
+    elif re.match(r"(.)*Kotlin(.)*", language):
+        file_name = "noncorrect.kt"
     elif re.match(r"(.)*Java(.)*", language):
         try:
             tree = javalang.parse.parse(source)

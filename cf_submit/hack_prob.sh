@@ -34,6 +34,9 @@ compile() {
     elif [[ $1 == *.java ]]; then
         echo "${2} java"
         javac $1
+    elif [[ $1 == *.kt ]]; then
+        echo "${2} kotlin"
+        kotlinc $1 -include-runtime -d ${1/.*/.jar}
     elif [[ $1 == *.py ]]; then
         echo "${2} python"
     else
@@ -58,6 +61,14 @@ execute() {
             java -Xmx512M -Xss64M -DONLINE_JUDGE=true -Duser.language=en -Duser.region=US -Duser.variant=US ${1/.*} < $2 > $3
         else
             java -Xmx512M -Xss64M -DONLINE_JUDGE=true -Duser.language=en -Duser.region=US -Duser.variant=US ${1/.*} ${@:2}
+        fi
+    elif [[ $1 == *.jar ]]; then
+        if [[ $# -eq 2 ]]; then
+            java -Xmx512M -Xss64M -DONLINE_JUDGE=true -DLOCAL=true -Duser.language=en -Duser.region=US -Duser.variant=US -jar $1 $2
+        elif [[ $# -eq 3 ]]; then
+            java -Xmx512M -Xss64M -DONLINE_JUDGE=true -Duser.language=en -Duser.region=US -Duser.variant=US -jar $1 < $2 > $3
+        else
+            java -Xmx512M -Xss64M -DONLINE_JUDGE=true -Duser.language=en -Duser.region=US -Duser.variant=US -jar $1 ${@:2}
         fi
     elif [[ $1 == *.py ]]; then
         if [[ ${LANGUAGE} == *2* ]]; then
