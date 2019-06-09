@@ -1,4 +1,8 @@
 # cf-code-submit
+
+[![PyPI version](https://badge.fury.io/py/cf-submit.svg)](https://badge.fury.io/py/cf-submit)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d51504426d894fa6800556dd1c3331b5)](https://app.codacy.com/app/bacali95/cf_submit?utm_source=github.com&utm_medium=referral&utm_content=bacali95/cf_submit&utm_campaign=Badge_Grade_Dashboard)
+
 Submit code to codeforces from the command line, and other stuff (display solves for each problem, display standings). <br />
 
 In order to save the huge number of seconds needed to reach for the mouse during codeforces contests, I needed to be able to submit from the command line. There are many tools to do this for codeforces contests but I was unable to find an existing tool that allowed submissions to the codeforces gym for virtual contests, so I made this.
