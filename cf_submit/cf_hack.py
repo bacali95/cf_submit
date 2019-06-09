@@ -68,7 +68,6 @@ def init_workspace(generator, tle_generator, checker, correct_solution):
 
 
 def begin_hack(contest, problem, generator, tle_generator, checker, correct_solution, test_number):
-    global file_name
     hacked_solutions = 0
     tried_solutions = 0
 
@@ -172,7 +171,6 @@ def begin_hack(contest, problem, generator, tle_generator, checker, correct_solu
 
 
 def create_file(source, language):
-    global file_name
     if re.match(r"(.)*\+\+(.)*", language):
         file_name = "noncorrect.cpp"
     elif re.match(r"(.)*GNU(.)*", language):
