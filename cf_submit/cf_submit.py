@@ -44,7 +44,7 @@ def peek(handle):
 # watch last submission
 
 def watch(handle):
-    spinner = {0: "◐", 1: "◓", 2: "◑", 3: "◒"}
+    spinner = {0: "◴", 1: "◵", 2: "◶", 3: "◷"}
 
     count = 0
     while True:
