@@ -18,7 +18,7 @@ def refresh_gyms_data():
         r = requests.get(url=URL, params=PARAMS, timeout=4).json()
         data = [gym for gym in r["result"] if len(str(gym['id'])) == 6]
         cf_io_utils.write_data_in_file(data, gyms_loc)
-    except:
+    except Exception:
         return
 
 
@@ -27,8 +27,7 @@ def load_gyms(pretty_off):
     data = cf_io_utils.read_data_from_file(gyms_loc) or []
     data.sort(key=lambda x: x['id'], reverse=True)
     if pretty_off:
-        data = list(map(lambda x: x['id'], data))
-        print(*data)
+        print(" ".join(map(str, map(lambda x: x['id'], data))))
     else:
         print_pretty(data[0:20])
 

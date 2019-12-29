@@ -17,7 +17,7 @@ def refresh_contests_data():
     try:
         r = requests.get(url=URL, params=PARAMS, timeout=0.5).json()
         cf_io_utils.write_data_in_file(r["result"], contests_loc)
-    except:
+    except Exception:
         return
 
 
@@ -26,8 +26,7 @@ def load_contests(pretty_off):
     data = cf_io_utils.read_data_from_file(contests_loc) or []
     data.sort(key=lambda x: x['id'], reverse=True)
     if pretty_off:
-        data = list(map(lambda x: x['id'], data))
-        print(*data)
+        print(" ".join(map(str, map(lambda x: x['id'], data))))
     else:
         print_pretty(data[0:20])
 

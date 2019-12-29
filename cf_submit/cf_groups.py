@@ -1,4 +1,3 @@
-import requests
 import os
 import re
 from prettytable import PrettyTable
@@ -41,10 +40,10 @@ def refresh_groups_data():
         if str(row.find_all('td')[2].text).strip() != 'Accepted':
             continue
         group = {}
-        id = str(row.find('a', class_='groupName'))
-        id = re.sub(r'.*/group/', '', id)
-        id = re.sub(r'/members.*', '', id)
-        group['id'] = id
+        group_id = str(row.find('a', class_='groupName'))
+        group_id = re.sub(r'.*/group/', '', group_id)
+        group_id = re.sub(r'/members.*', '', group_id)
+        group['id'] = group_id
         group['name'] = str(row.find('a', class_='groupName').text).strip()
         data[id] = group
     return data
@@ -63,7 +62,7 @@ def load_contests(group, pretty_off):
 
     if pretty_off:
         ids = [contest['id'] for contest in groups[group]['contests']]
-        print(*ids)
+        print(" ".join(map(str, ids)))
     else:
         print_pretty(groups[group]['contests'])
 

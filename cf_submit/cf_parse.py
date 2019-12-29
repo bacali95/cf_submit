@@ -1,6 +1,5 @@
 import os
 from subprocess import Popen
-from robobrowser import RoboBrowser
 
 from .cf_colors import colors
 from . import cf_login

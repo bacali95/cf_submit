@@ -13,7 +13,7 @@ def makeascii(s):
 # gym contest
 def print_st(raw_html, verbose, top, sort):
     # get standings table
-    global handledict
+    handledict = {}
     mellon = raw_html.find_all("table", class_="standings")[0].find_all("tr")
 
     standings = PrettyTable()
@@ -47,8 +47,8 @@ def print_st(raw_html, verbose, top, sort):
             id_start += 1
 
     fields = dict()
-    for i in range(0, len(header)):
-        fields[header[i]] = i
+    for i, h in enumerate(header):
+        fields[h] = i
 
     # find problemstart and solvecol
     problemstart = 0
@@ -211,7 +211,7 @@ def print_st(raw_html, verbose, top, sort):
 
     elif sort == "solves":
         # add rowinfo to standings
-        for key, rowinfo in handledict.items():
+        for _, rowinfo in handledict.items():
             # append the sorter
             sortvalue = rowinfo[fields["="]]
             if "Penalty" in fields:

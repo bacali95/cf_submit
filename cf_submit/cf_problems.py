@@ -3,7 +3,6 @@ from prettytable import PrettyTable
 
 from . import cf_io_utils
 from . import cf_login
-from .cf_colors import colors
 
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
 config_loc = os.path.join(cache_loc, 'config.json')
@@ -53,7 +52,7 @@ def load_problems(pretty_off):
     # printing
     if pretty_off:
         ids = [str(problem['id']).lower() for problem in problems[contest]]
-        print(*ids)
+        print(" ".join(map(str, ids)))
     else:
         print_pretty(problems[contest])
 

@@ -200,7 +200,7 @@ def create_file(source, language):
     return file_name
 
 
-def print_standings(contest, limit, all):
+def print_standings(contest, limit, show_all):
     if contest is None:
         print("Please specify a contest first using: cf hack standings --contest 1010 or cf con --id 1010")
         return
@@ -231,15 +231,15 @@ def print_standings(contest, limit, all):
     data.sort(key=lambda item: item["unsuccessfulHackCount"])
     data.sort(key=lambda item: item["successfulHackCount"], reverse=True)
     for i, item in enumerate(data):
-        if i >= limit and not all:
+        if i >= limit and not show_all:
             break
         standings.add_row(
             [i+1, item['handle'], "+{} : -{}".format(item['successfulHackCount'], item['unsuccessfulHackCount'])])
     print(standings.get_string(sortby='Rank'))
 
 
-def safe_list_get(list, idx, default):
+def safe_list_get(l, idx, default):
     try:
-        return list[idx]
+        return l[idx]
     except IndexError:
         return default
