@@ -228,6 +228,7 @@ def print_standings(contest, limit, all):
         }
         data.append(entry)
 
+    data.sort(key=lambda item: item["unsuccessfulHackCount"])
     data.sort(key=lambda item: item["successfulHackCount"], reverse=True)
     for i, item in enumerate(data):
         if i >= limit and not all:

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="cf_submit",
-    version="1.2.0",
+    version="1.2.1",
     scripts=['cf'],
     author="Nasreddine Bac Ali",
     author_email="nasreddine.bacali95@gmail.com",
