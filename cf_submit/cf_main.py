@@ -142,7 +142,7 @@ def main():
                         help="show common standings"
                         )
     parser.add_argument("-t", "--top",
-                        type=int, nargs='?', const=10, default=50,
+                        type=int, nargs='?', const=10, default=10,
                         help="number of top contestants to print"
                         )
     parser.add_argument("-s", "--sort",
@@ -315,6 +315,13 @@ def main():
                                 % (config.get("contest", None), splitted[0],
                                    str(splitted[1]+splitted[2]).upper()), 2)
     elif args.command == "hack":
+        if "standings" in args.option:
+            if args.contest is None:
+                contest = config.get("contest", None)
+            else:
+                contest = args.contest
+            cf_hack.print_standings(contest, args.top, args.all)
+            return
         if len(args.option) < 3:
             print(
                 "Please select your <generator-source> [<tle-generator-source>] <checker-source> <answer-source> !!")
@@ -329,6 +336,11 @@ def main():
         else:
             cf_hack.begin_hack(config.get("contest", None), args.prob, args.option[0], args.option[1],
                                args.option[2], args.option[3], args.number)
+    elif args.command == "completion":
+        os.system(
+            'sudo ln -sf {}/auto_complete_cf /etc/bash_completion.d/cf'.format(
+                os.path.dirname(os.path.abspath(__file__))))
+        os.system('source /etc/bash_completion.d/cf')
     else:
         print("UNKNOWN COMMAND")
 

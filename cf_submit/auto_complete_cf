@@ -1,7 +1,7 @@
 #!/bin/bash
 
 _commands(){
-  echo "con gym gcon contests gyms groups gcontests hack info login peek problems standings submit time watch open parse test -h --help"
+  echo "con gym gcon contests gyms groups gcontests hack info login peek problems standings submit time watch open parse test completion -h --help"
 }
 
 _cf() {
@@ -33,7 +33,14 @@ _cf() {
           _script_commands=$(ls)
           ;;
         "standings")
-          _script_commands="-c --contest --group -v --verbose -s --sort -t --top -a --all"
+          case "${COMP_WORDS[1]}" in
+            "standings")
+              _script_commands="-c --contest --group -v --verbose -s --sort -t --top -a --all"
+              ;;
+            "hack")
+              _script_commands="-c --contest -t --top -a --all"
+              ;;
+          esac
           ;;
         "submit")
           _script_commands="-p --prob -w --watch -l --lang $(ls)"
@@ -45,10 +52,7 @@ _cf() {
           _script_commands="--pretty-off"
           ;;
         "hack")
-          _script_commands="-n --number -p --prob $(ls)"
-          ;;
-        "hack")
-          _script_commands=$(ls)
+          _script_commands="standings -n --number -p --prob $(ls)"
           ;;
         "peek" | "watch" | "time" | "info")
           ;;

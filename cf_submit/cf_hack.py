@@ -1,9 +1,11 @@
 import os
 import re
 import time
+import requests
 import javalang
 from subprocess import Popen
 from robobrowser import RoboBrowser
+from prettytable import PrettyTable
 
 from . import cf_login
 from .cf_colors import colors
@@ -196,3 +198,47 @@ def create_file(source, language):
     for_hack_source.write(source)
     for_hack_source.close()
     return file_name
+
+
+def print_standings(contest, limit, all):
+    if contest is None:
+        print("Please specify a contest first using: cf hack standings --contest 1010 or cf con --id 1010")
+        return
+    response = requests.get(
+        "https://codeforces.com/api/contest.standings?contestId={}&showUnofficial=true".format(contest)).json()
+    rows = response["result"]["rows"]
+    print("Contest:\n   Id: {}\n   Name: {}".format(
+        contest, response["result"]["contest"]["name"]))
+    data = list()
+    standings = PrettyTable()
+    standings.field_names = ['Rank', 'Name', 'Hacks']
+    standings.align['Name'] = 'l'
+    standings.align['Hacks'] = 'l'
+    for row in rows:
+        handle = None
+        if row["party"]["ghost"] is True:
+            handle = row["party"]["teamName"]
+        else:
+            handle = safe_list_get(row["party"]["members"], 0, {
+                                   "handle": None})["handle"]
+        entry = {
+            "handle": handle,
+            "successfulHackCount": row["successfulHackCount"],
+            "unsuccessfulHackCount": row["unsuccessfulHackCount"]
+        }
+        data.append(entry)
+
+    data.sort(key=lambda item: item["successfulHackCount"], reverse=True)
+    for i, item in enumerate(data):
+        if i >= limit and not all:
+            break
+        standings.add_row(
+            [i+1, item['handle'], "+{} : -{}".format(item['successfulHackCount'], item['unsuccessfulHackCount'])])
+    print(standings.get_string(sortby='Rank'))
+
+
+def safe_list_get(list, idx, default):
+    try:
+        return list[idx]
+    except IndexError:
+        return default

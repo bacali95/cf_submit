@@ -1,22 +1,11 @@
-from setuptools.command.install import install
-from setuptools import setup, dist
-
-
-class InstallCommand(install):
-    def run(self):
-        import os
-        os.system('sudo cp cf_submit/cf_checker /usr/bin')
-        os.system('sudo cp cf_submit/auto_complete_cf /etc/bash_completion.d')
-        os.system('source /etc/bash_completion.d/auto_complete_cf')
-        install.run(self)
-
+from setuptools import setup
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name="cf_submit",
-    version="1.1.7",
+    version="1.2.0",
     scripts=['cf'],
     author="Nasreddine Bac Ali",
     author_email="nasreddine.bacali95@gmail.com",
@@ -42,7 +31,5 @@ setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-    ], cmdclass={
-        'install': InstallCommand
-    }
+    ]
 )

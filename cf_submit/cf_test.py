@@ -28,8 +28,8 @@ def test(source, lang):
                       (colors.WARNING, i, colors.ENDC))
                 i += 1
                 execute(source, lang, info, input_file, output_file)
-                proccess = Popen(["cf_checker", file_name,
-                                  file_name.replace(".in", ".out"), file_name.replace(".in", ".ans")])
+                proccess = Popen(["{}/cf_checker".format(os.path.dirname(os.path.abspath(__file__))),
+                                  file_name, file_name.replace(".in", ".out"), file_name.replace(".in", ".ans")])
                 proccess.wait(timeout=5)
                 exit_code = proccess.returncode
                 print("\n%sInput:%s" % (colors.OKBLUE, colors.ENDC))
