@@ -3,12 +3,12 @@ import re
 from prettytable import PrettyTable
 
 from . import cf_login
-from . import cf_io_utils
+from . import cf_utils
 
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
 groups_loc = os.path.join(cache_loc, 'groups.json')
-config_loc = os.path.join(cache_loc, "config.json")
-config = cf_io_utils.read_data_from_file(config_loc)
+config_loc = os.path.join(cache_loc, 'config.json')
+config = cf_utils.readDataFromFile(config_loc)
 
 
 def refresh_contests_data(group):
@@ -50,28 +50,28 @@ def refresh_groups_data():
 
 
 def load_contests(group, pretty_off):
-    groups = cf_io_utils.read_data_from_file(groups_loc)
+    groups = cf_utils.readDataFromFile(groups_loc)
     if groups is None:
         groups = refresh_groups_data()
-        cf_io_utils.write_data_in_file(groups, groups_loc)
+        cf_utils.writeDataToFile(groups, groups_loc)
     if groups.get(group, None) is None:
         return
     if groups[group].get('contests', None) is None:
         groups[group]['contests'] = refresh_contests_data(group)
-        cf_io_utils.write_data_in_file(groups, groups_loc)
+        cf_utils.writeDataToFile(groups, groups_loc)
 
     if pretty_off:
         ids = [contest['id'] for contest in groups[group]['contests']]
-        print(" ".join(map(str, ids)))
+        print(' '.join(map(str, ids)))
     else:
         print_pretty(groups[group]['contests'])
 
 
 def load_groups(pretty_off):
-    groups = cf_io_utils.read_data_from_file(groups_loc)
+    groups = cf_utils.readDataFromFile(groups_loc)
     if groups is None:
         groups = refresh_groups_data()
-        cf_io_utils.write_data_in_file(groups, groups_loc)
+        cf_utils.writeDataToFile(groups, groups_loc)
 
     if pretty_off:
         ids = [id for id in groups]

@@ -3,21 +3,20 @@ import random
 import getpass
 from robobrowser import RoboBrowser
 
-from . import cf_io_utils
+from . import cf_utils
 
 root = '7'
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
-config_loc = os.path.join(cache_loc, "config.json")
-config = cf_io_utils.read_data_from_file(config_loc)
+config_loc = os.path.join(cache_loc, 'config.json')
+config = cf_utils.readDataFromFile(config_loc)
 if config is None:
     config = dict()
 
 
 # converter
-
 def decode(s):
     global root
-    res = ""
+    res = ''
     length = len(s)
     i = 0
     while i < length:
@@ -33,7 +32,7 @@ def decode(s):
 
 def encode(s):
     global root
-    res = ""
+    res = ''
     length = len(s)
     for i in range(0, length):
         rng = random.randint(1, 20)
@@ -53,45 +52,45 @@ def encode(s):
 
 def set_login(handle=None):
     if handle is None:
-        handle = input("Handle: ")
-    password = getpass.getpass("Password: ")
+        handle = input('Handle: ')
+    password = getpass.getpass('Password: ')
 
-    browser = RoboBrowser(parser="lxml")
-    browser.open("http://codeforces.com/enter")
-    enter_form = browser.get_form("enterForm")
-    enter_form["handleOrEmail"] = handle
-    enter_form["password"] = password
+    browser = RoboBrowser(parser='lxml')
+    browser.open('http://codeforces.com/enter')
+    enter_form = browser.get_form('enterForm')
+    enter_form['handleOrEmail'] = handle
+    enter_form['password'] = password
     browser.submit_form(enter_form)
 
     checks = list(map(lambda x: x.getText()[1:].strip(),
-                      browser.select("div.caption.titled")))
+                      browser.select('div.caption.titled')))
     if handle not in checks:
-        print("Login Failed.")
+        print('Login Failed.')
         return
     else:
-        config["handle"] = handle
-        config["password"] = encode(password)
-        cf_io_utils.write_data_in_file(config, config_loc)
-        print("Successfully logged in as " + handle)
+        config['handle'] = handle
+        config['password'] = encode(password)
+        cf_utils.writeDataToFile(config, config_loc)
+        print('Successfully logged in as ' + handle)
 
 
 # login
 
 def login():
-    handle = config["handle"]
-    password = decode(config.get("password", None))
+    handle = config['handle']
+    password = decode(config.get('password', None))
 
-    browser = RoboBrowser(parser="lxml")
-    browser.open("http://codeforces.com/enter")
-    enter_form = browser.get_form("enterForm")
-    enter_form["handleOrEmail"] = handle
-    enter_form["password"] = password
+    browser = RoboBrowser(parser='lxml')
+    browser.open('http://codeforces.com/enter')
+    enter_form = browser.get_form('enterForm')
+    enter_form['handleOrEmail'] = handle
+    enter_form['password'] = password
     browser.submit_form(enter_form)
 
     checks = list(map(lambda x: x.getText()[
-                  1:].strip(), browser.select("div.caption.titled")))
+                  1:].strip(), browser.select('div.caption.titled')))
     if handle not in checks:
-        print("Login Corrupted.")
+        print('Login Corrupted.')
         return None
     else:
         return browser

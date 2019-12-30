@@ -1,13 +1,13 @@
 import os
 from prettytable import PrettyTable
 
-from . import cf_io_utils
+from . import cf_utils
 from . import cf_login
 
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
 config_loc = os.path.join(cache_loc, 'config.json')
 problems_loc = os.path.join(cache_loc, 'problems.json')
-config = cf_io_utils.read_data_from_file(config_loc) or {}
+config = cf_utils.readDataFromFile(config_loc) or {}
 contest = config.get('contest', None)
 group = config.get('group', None)
 
@@ -42,17 +42,17 @@ def refresh_problems_data():
 
 def load_problems(pretty_off):
     if contest is None:
-        print("Set contest first with: cf con --id 1111")
+        print('Set contest first with: cf con --id 1111')
         return
 
-    problems = cf_io_utils.read_data_from_file(problems_loc) or {}
+    problems = cf_utils.readDataFromFile(problems_loc) or {}
     if problems.get(contest, None) is None:
         problems[contest] = refresh_problems_data()
-        cf_io_utils.write_data_in_file(problems, problems_loc)
+        cf_utils.writeDataToFile(problems, problems_loc)
     # printing
     if pretty_off:
         ids = [str(problem['id']).lower() for problem in problems[contest]]
-        print(" ".join(map(str, ids)))
+        print(' '.join(map(str, ids)))
     else:
         print_pretty(problems[contest])
 

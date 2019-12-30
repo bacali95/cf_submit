@@ -3,30 +3,31 @@ import requests
 from prettytable import PrettyTable
 from threading import Thread
 
-from . import cf_io_utils
+from .cf_utils import readDataFromFile, writeDataToFile
+from .codeforces import CodeforcesAPI
 
-URL = 'https://codeforces.com/api/contest.list'
-PARAMS = {'gym': 'false'}
+codeforces = CodeforcesAPI()
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
-config_loc = os.path.join(cache_loc, "config.json")
-contests_loc = os.path.join(cache_loc, "contests.json")
-config = cf_io_utils.read_data_from_file(config_loc)
+contests_loc = os.path.join(cache_loc, 'contests.json')
 
 
 def refresh_contests_data():
     try:
-        r = requests.get(url=URL, params=PARAMS, timeout=0.5).json()
-        cf_io_utils.write_data_in_file(r["result"], contests_loc)
+        writeDataToFile(codeforces.contestList(), contests_loc)
     except Exception:
         return
 
 
 def load_contests(pretty_off):
-    Thread(target=refresh_contests_data).start()
-    data = cf_io_utils.read_data_from_file(contests_loc) or []
+    data = readDataFromFile(contests_loc) or []
+    if len(data) == 0:
+        refresh_contests_data()
+        data = readDataFromFile(contests_loc) or []
+    else:
+        Thread(target=refresh_contests_data).start()
     data.sort(key=lambda x: x['id'], reverse=True)
     if pretty_off:
-        print(" ".join(map(str, map(lambda x: x['id'], data))))
+        print(' '.join(map(str, map(lambda x: x['id'], data))))
     else:
         print_pretty(data[0:20])
 
@@ -37,5 +38,5 @@ def print_pretty(data):
     for i in data:
         contests.add_row([i['id'], i['name']])
     contests.hrules = True
-    contests.align["Name"] = "l"
-    print(contests.get_string(sortby="Id", reversesort=True))
+    contests.align['Name'] = 'l'
+    print(contests.get_string(sortby='Id', reversesort=True))

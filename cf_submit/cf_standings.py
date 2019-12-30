@@ -2,6 +2,7 @@ import re
 from prettytable import PrettyTable
 
 from .cf_colors import colors
+from . import cf_login
 
 
 def makeascii(s):
@@ -11,36 +12,57 @@ def makeascii(s):
 # print friends standings in specified contest
 # parse html
 # gym contest
-def print_st(raw_html, verbose, top, sort):
+def print_standings(group, contest, verbose, top, sort, showall):
+    # requires login
+    browser = cf_login.login()
+    if group is not None:
+        # group contest contest
+        url = 'http://codeforces.com/group/' + \
+            group + '/contest/' + contest + '/standings'
+    elif len(str(contest)) >= 6:
+        # gym contest
+        url = 'http://codeforces.com/gym/' + contest + '/standings'
+    else:
+        # codeforces round
+        url = 'http://codeforces.com/contest/' + contest + '/standings'
+    # check if friends
+    if group is not None:
+        url += '/groupmates/true'
+    elif showall is False:
+        url += '/friends/true'
+    else:
+        url += '/page/1'
+    browser.open(url)
+    raw_html = browser.parsed
     # get standings table
     handledict = {}
-    mellon = raw_html.find_all("table", class_="standings")[0].find_all("tr")
+    mellon = raw_html.find('table', class_='standings').find_all('tr')
 
     standings = PrettyTable()
 
     # get header
-    firstpart = len(mellon[0].find_all("th")) - len(mellon[0].find_all("a"))
+    firstpart = len(mellon[0].find_all('th')) - len(mellon[0].find_all('a'))
     header = []
     if verbose:
-        for hcell in mellon[0].find_all("th")[:firstpart]:
+        for hcell in mellon[0].find_all('th')[:firstpart]:
             hcellstr = str(hcell.get_text(strip=True))
-            if hcellstr == "*":
-                hcellstr = "Hacks"
+            if hcellstr == '*':
+                hcellstr = 'Hacks'
             header.append(hcellstr)
     else:
-        for hcell in mellon[0].find_all("th")[1:3]:
+        for hcell in mellon[0].find_all('th')[1:3]:
             header.append(str(hcell.get_text(strip=True)))
-    for hcell in mellon[0].find_all("a"):
+    for hcell in mellon[0].find_all('a'):
         header.append(str(hcell.get_text(strip=True)))
     # append sorter to header
     if sort is not None:
-        header.append("sorter")
+        header.append('sorter')
     standings.field_names = header
 
     id_start = 4
     if not verbose:
         id_start = 0
-        for hcell in mellon[0].find_all("th"):
+        for hcell in mellon[0].find_all('th'):
             hcellstr = str(hcell.get_text(strip=True))
             if hcellstr.find('A') != -1:
                 break
@@ -52,10 +74,10 @@ def print_st(raw_html, verbose, top, sort):
 
     # find problemstart and solvecol
     problemstart = 0
-    while header[problemstart].find("A") == -1:
+    while header[problemstart].find('A') == -1:
         problemstart += 1
     solvecol = 0
-    while header[solvecol] != "=":
+    while header[solvecol] != '=':
         solvecol += 1
 
     # if sort, use dict
@@ -70,7 +92,7 @@ def print_st(raw_html, verbose, top, sort):
     # iterate
     for ami in rankrowlist:
         virtual = True
-        row = ami.find_all("td")
+        row = ami.find_all('td')
         tablerow = []
         # get place
         # this cell has problems
@@ -95,26 +117,26 @@ def print_st(raw_html, verbose, top, sort):
             # check if there are still colons left if yes, split at last colon
             if party.count(':') > 0:
                 # check for '#'
-                tail = ""
+                tail = ''
                 if party[-1] == '#':
-                    tail = "#"
+                    tail = '#'
                     party = party[:-1]
                 # split
                 party = party.split(':')
                 # get first part (team name)
                 teamname = party[0]
                 for partypart in party[1:-1]:
-                    teamname += ":" + partypart
+                    teamname += ':' + partypart
                 if len(teamname + tail) > 24:
-                    teamname = teamname[:20] + "..."
-                teamname += tail + ":"
+                    teamname = teamname[:20] + '...'
+                teamname += tail + ':'
                 team.append(teamname)
                 # split rest of team members
                 for member in party[-1].split(','):
                     team.append(member.strip())
             else:
                 team.append(party)
-            # append time if it exists"""
+            # append time if it exists'''
             if virtualtime is not None:
                 team.append(virtualtime)
             # join party
@@ -123,17 +145,17 @@ def print_st(raw_html, verbose, top, sort):
             if party[-3] == ':':
                 party = party[:-5]
             if party.count(':') > 0:
-                tail = ""
+                tail = ''
                 if party[-1] == '#':
-                    tail = "#"
+                    tail = '#'
                     party = party[:-1]
                 # split
                 party = party.split(':')
                 teamname = party[0]
                 for partypart in party[1:-1]:
-                    teamname += ":" + partypart
+                    teamname += ':' + partypart
                 if len(teamname) > 32:
-                    teamname = teamname[:32] + "..."
+                    teamname = teamname[:32] + '...'
                 teamname += tail
                 party = teamname
         tablerow.append(makeascii(party))
@@ -153,7 +175,7 @@ def print_st(raw_html, verbose, top, sort):
                 else:
                     problemres = problemres[:-5]
             else:
-                problemres = problemres.replace("-", "WA-")
+                problemres = problemres.replace('-', 'WA-')
             tablerow.append(problemres)
 
         # check sort
@@ -175,7 +197,7 @@ def print_st(raw_html, verbose, top, sort):
                     if len(handledict[party][i]) == 0:
                         handledict[party][i] = tablerow[i]
                         # check if we should update solvecol
-                        if len(tablerow[i]) != 0 and tablerow[i][0] == "+":
+                        if len(tablerow[i]) != 0 and tablerow[i][0] == '+':
                             handledict[party][solvecol] += 1
                     elif handledict[party][i][0] != '+' and len(tablerow[i]) != 0:
                         totalwa = int(handledict[party][i].split(
@@ -184,13 +206,13 @@ def print_st(raw_html, verbose, top, sort):
                             # add wa
                             totalwa += int(tablerow[i].split('\n')
                                            [0].split('-')[1])
-                            handledict[party][i] = "WA-" + str(totalwa)
+                            handledict[party][i] = 'WA-' + str(totalwa)
                         else:
                             # add wa to correct submission
                             correct = tablerow[i].split('\n')[0][1:]
                             if len(correct) != 0:
                                 totalwa += int(correct)
-                            handledict[party][i] = "+" + str(totalwa)
+                            handledict[party][i] = '+' + str(totalwa)
                             # update solvecol
                             handledict[party][solvecol] += 1
         else:
@@ -200,45 +222,67 @@ def print_st(raw_html, verbose, top, sort):
     # standings properties
     if verbose:
         standings.hrules = True
-        if "Penalty" in standings.align:
-            standings.align["Penalty"] = "r"
-    standings.align["Who"] = "l"
-    standings.align["="] = "r"
+        if 'Penalty' in standings.align:
+            standings.align['Penalty'] = 'r'
+    standings.align['Who'] = 'l'
+    standings.align['='] = 'r'
 
     # print standings
     if sort is None:
         print(standings)
 
-    elif sort == "solves":
+    elif sort == 'solves':
         # add rowinfo to standings
         for _, rowinfo in handledict.items():
             # append the sorter
-            sortvalue = rowinfo[fields["="]]
-            if "Penalty" in fields:
-                if len(rowinfo[fields["Penalty"]]) == 0:
+            sortvalue = rowinfo[fields['=']]
+            if 'Penalty' in fields:
+                if len(rowinfo[fields['Penalty']]) == 0:
                     sortvalue = 100000 * sortvalue - 99999
                 else:
                     sortvalue = 100000 * sortvalue - \
-                        int(rowinfo[fields["Penalty"]])
+                        int(rowinfo[fields['Penalty']])
             rowinfo.append(sortvalue)
             standings.add_row(rowinfo)
         # print
         print(standings.get_string(
-            sortby="sorter",
+            sortby='sorter',
             reversesort=True,
             fields=header[:-1]
         ))
 
-    elif sort == "index":
-        print("sort == index : nothing here")
+    elif sort == 'index':
+        print('sort == index : nothing here')
 
     else:
-        print("this should not have happened. nothing here")
+        print('this should not have happened. nothing here')
 
     # first check if countdown
-    # boldstart = "\033[1m"
-    # boldend = "\033[0;0m"
-    countdown_timer = raw_html.find_all("span", class_="countdown")
+    # boldstart = '\033[1m'
+    # boldend = '\033[0;0m'
+    countdown_timer = raw_html.find_all('span', class_='countdown')
     if len(countdown_timer) > 0:
-        print("%sTIME LEFT: %s%s" %
+        print('%sTIME LEFT: %s%s' %
+              (colors.BOLD, str(countdown_timer[0].get_text(strip=True)), colors.ENDC))
+
+
+# get time
+def print_time(group, contest):
+    browser = cf_login.login()
+    if contest is None:
+        print('Set contest first with: cf con/gym --id 1111')
+        return
+    if group is not None:
+        url = 'http://codeforces.com/group/' + group + '/contest/' + contest + '/submit'
+    elif len(str(contest)) >= 6:
+        url = 'http://codeforces.com/gym/' + contest + '/submit'
+    else:
+        url = 'http://codeforces.com/contest/' + contest + '/submit'
+    browser.open(url)
+    countdown_timer = browser.parsed.find_all(
+        'span', class_='contest-state-regular countdown before-contest-' + contest + '-finish')
+    if len(countdown_timer) == 0:
+        print('Contest ' + contest + ' is over')
+    else:
+        print('%sTIME LEFT: %s%s' %
               (colors.BOLD, str(countdown_timer[0].get_text(strip=True)), colors.ENDC))

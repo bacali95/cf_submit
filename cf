@@ -3,9 +3,8 @@
 import sys
 from cf_submit import cf_main
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     try:
         cf_main.main()
     except KeyboardInterrupt:
-        print("")
         sys.exit(0)
