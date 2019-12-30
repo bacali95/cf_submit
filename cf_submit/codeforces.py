@@ -1,5 +1,4 @@
 import os
-import json
 import time
 import hashlib
 import requests
@@ -39,14 +38,13 @@ class CodeforcesAPI:
         response = requests.get('{}/contest.list'.format(self.baseUrl))
         return [obj(res) for res in response.json()['result']]
 
-    def contestStandings(self, contestId, from_=1, count=10, handles=[], room=None, showUnofficial=False):
+    def contestStandings(self, contestId, from_=1, count=10, handles=[], showUnofficial=False):
         response = requests.get(
             '{}/contest.standings'.format(self.baseUrl), params={
                 'contestId': contestId,
                 'from': from_,
                 'count': count,
                 'handles': handles,
-                'room': room,
                 'showUnofficial': showUnofficial
             })
         return obj(response.json()['result'])

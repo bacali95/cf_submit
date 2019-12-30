@@ -15,10 +15,7 @@ class obj(object):
                         if isinstance(b, dict) else b)
 
     def toString(self):
-        return json.dumps(self, default=self.__dumper, indent=2)
-
-    def __dumper(self, obj):
-        return obj.__dict__
+        return json.dumps(self, default=lambda x: x.__dict__, indent=2)
 
 
 def writeDataToFile(data, file_name):

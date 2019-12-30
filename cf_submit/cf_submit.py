@@ -34,10 +34,12 @@ def peek(handle):
     else:
         if submission.verdict != 'OK':
             print('Submission %s to problem %s: %s on test %s\nTime:   %sms \nMemory: %sKb'
-                  % (submission.id, problem, submission.verdict, 1 + submission.passedTestCount, submission.timeConsumedMillis, submission.memoryConsumedBytes / 1024))
+                  % (submission.id, problem, submission.verdict, 1 + submission.passedTestCount,
+                     submission.timeConsumedMillis, submission.memoryConsumedBytes / 1024))
         else:
             print('Submission %s to problem %s: %s! passed all %s tests\nTime:   %sms \nMemory: %sKb'
-                  % (submission.id, problem, submission.verdict, submission.passedTestCount, submission.timeConsumedMillis, submission.memoryConsumedBytes / 1024))
+                  % (submission.id, problem, submission.verdict, submission.passedTestCount,
+                     submission.timeConsumedMillis, submission.memoryConsumedBytes / 1024))
 
 
 # watch last submission
@@ -53,10 +55,12 @@ def watch(handle):
         if submission.verdict not in ['TESTING', 'IN QUEUE']:
             if submission.verdict != 'OK':
                 sys.stdout.write('\rSubmission %s to problem %s: %s on test %s\nTime:   %sms \nMemory: %sKb'
-                                 % (submission.id, problem, submission.verdict, 1 + submission.passedTestCount, submission.timeConsumedMillis, submission.memoryConsumedBytes / 1024))
+                                 % (submission.id, problem, submission.verdict, 1 + submission.passedTestCount,
+                                    submission.timeConsumedMillis, submission.memoryConsumedBytes / 1024))
             else:
                 sys.stdout.write('\rSubmission %s to problem %s: %s! passed all %s tests\nTime:   %sms \nMemory: %sKb'
-                                 % (submission.id, problem, submission.verdict, submission.passedTestCount, submission.timeConsumedMillis, submission.memoryConsumedBytes / 1024))
+                                 % (submission.id, problem, submission.verdict, submission.passedTestCount,
+                                    submission.timeConsumedMillis, submission.memoryConsumedBytes / 1024))
             sys.stdout.flush()
             break
         else:

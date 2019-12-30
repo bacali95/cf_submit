@@ -14,7 +14,6 @@ from . import cf_hack
 from . import cf_parse
 from . import cf_test
 from . import cf_utils
-from . import cf_colors
 from . import __version__
 
 
