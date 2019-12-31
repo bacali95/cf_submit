@@ -6,7 +6,6 @@ if [[ $# -ne 6 ]]; then
     exit -1
 fi
 
-GREEN='\033[32m'
 YELLOW='\033[33m'
 NC='\033[0m'
 
