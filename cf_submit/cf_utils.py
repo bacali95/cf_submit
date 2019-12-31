@@ -35,7 +35,7 @@ def write_data_to_file(data, file_name):
         with open(file_name, 'w') as file:
             json.dump(data, file, indent=2)
             return True
-    except TypeError or OSError:
+    except (TypeError, OSError):
         return False
 
 
@@ -46,7 +46,7 @@ def read_data_from_file(file_name):
                 return json.load(file)
         else:
             return None
-    except JSONDecodeError or OSError or FileNotFoundError:
+    except (JSONDecodeError, OSError):
         return None
 
 
