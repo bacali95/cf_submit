@@ -7,7 +7,7 @@ from . import cf_login
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
 config_loc = os.path.join(cache_loc, 'config.json')
 problems_loc = os.path.join(cache_loc, 'problems.json')
-config = cf_utils.readDataFromFile(config_loc) or {}
+config = cf_utils.read_data_from_file(config_loc) or {}
 contest = config.get('contest', None)
 group = config.get('group', None)
 
@@ -23,14 +23,15 @@ def refresh_problems_data():
     browser.open(url)
     raw_html = browser.parsed
     data = []
-    probraw = raw_html.find_all('table', class_='problems')[0].find_all('tr')
-    for row in probraw[1:]:
+    prob_rows = raw_html.find_all('table', class_='problems')[0].find_all('tr')
+    for row in prob_rows[1:]:
         cell = row.find_all('td')
         if len(cell) < 4:
             continue
-        problem = {}
-        problem['id'] = str(cell[0].get_text(strip=True))
-        problem['name'] = str(cell[1].find('a').get_text(strip=True))
+        problem = {
+            'id': str(cell[0].get_text(strip=True)),
+            'name': str(cell[1].find('a').get_text(strip=True))
+        }
         nbr_solves = str(cell[3].get_text(strip=True))
         if len(nbr_solves) == 0:
             problem['solves'] = int(0)
@@ -45,10 +46,10 @@ def load_problems(pretty_off):
         print('Set contest first with: cf con --id 1111')
         return
 
-    problems = cf_utils.readDataFromFile(problems_loc) or {}
+    problems = cf_utils.read_data_from_file(problems_loc) or {}
     if problems.get(contest, None) is None:
         problems[contest] = refresh_problems_data()
-        cf_utils.writeDataToFile(problems, problems_loc)
+        cf_utils.write_data_to_file(problems, problems_loc)
     # printing
     if pretty_off:
         ids = [str(problem['id']).lower() for problem in problems[contest]]

@@ -23,29 +23,30 @@ def main():
     if os.path.isdir(cache_loc) is False:
         os.mkdir(cache_loc)
     config_loc = os.path.join(cache_loc, 'config.json')
-    config = cf_utils.readDataFromFile(config_loc)
+    config = cf_utils.read_data_from_file(config_loc)
     if config is None:
         config = dict()
-        cf_utils.writeDataToFile(config, config_loc)
+        cf_utils.write_data_to_file(config, config_loc)
 
-    # ------------------- argparse --------------------
+    # ------------------- argParse --------------------
     parser = argparse.ArgumentParser(
         description='Command line tool to submit to codeforces', formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('command', help='con/gym/gcon -- change contest or gym or group contest id\n' +
-                                        'hack -- try to hack all the accepted submissions for a specific given problem\n' +
-                                        'ext -- change default file extension\n' +
-                                        'ext -- change default file extension\n' +
-                                        'info -- current handle and contest id\n' +
-                                        'login -- save login info\n' +
-                                        'peek -- look at last submission\n' +
-                                        'problems -- show number of solves on each problem\n' +
-                                        'standings -- show standings of friends in default contest, or specify contest with -p\n' +
-                                        'submit -- submit code to problem\n' +
-                                        'time -- shows time left in contest\n' +
-                                        'watch -- watch last submission\n' +
-                                        'open -- open selected problem on default browser\n' +
-                                        'parse -- import selected problem samples data\n' +
-                                        'test -- test the selected source code with the imported tests data\n')
+    parser.add_argument('command',
+                        help='con/gym/gcon -- change contest or gym or group contest id\n' +
+                             'hack -- try to hack all the accepted submissions for a specific given problem\n' +
+                             'ext -- change default file extension\n' +
+                             'ext -- change default file extension\n' +
+                             'info -- current handle and contest id\n' +
+                             'login -- save login info\n' +
+                             'peek -- look at last submission\n' +
+                             'problems -- show number of solves on each problem\n' +
+                             'standings -- show standings of friends in default contest, or specify contest with -p\n' +
+                             'submit -- submit code to problem\n' +
+                             'time -- shows time left in contest\n' +
+                             'watch -- watch last submission\n' +
+                             'open -- open selected problem on default browser\n' +
+                             'parse -- import selected problem samples data\n' +
+                             'test -- test the selected source code with the imported tests data\n')
 
     parser.add_argument('option',
                         nargs='*', default=None,
@@ -133,7 +134,7 @@ def main():
             contest = args.contest
         config['contest'] = contest
         config['group'] = group
-        cf_utils.writeDataToFile(config, config_loc)
+        cf_utils.write_data_to_file(config, config_loc)
         print('Group set to ' + group)
         print('Contest set to ' + contest)
 
@@ -146,7 +147,7 @@ def main():
             contest = input('Contest/Gym number: ')
         config['contest'] = contest
         config['group'] = None
-        cf_utils.writeDataToFile(config, config_loc)
+        cf_utils.write_data_to_file(config, config_loc)
         if len(contest) >= 6:
             print('Gym set to ' + contest)
         else:
@@ -168,17 +169,17 @@ def main():
             print('Bad input')
             return
         if len(args.option) == 1:
-            defext = args.option[0]
+            def_ext = args.option[0]
         else:
-            defext = input('Default file extension: ')
-        config['ext'] = defext
-        cf_utils.writeDataToFile(config, config_loc)
-        print('Default extension set to ' + defext)
+            def_ext = input('Default file extension: ')
+        config['ext'] = def_ext
+        cf_utils.write_data_to_file(config, config_loc)
+        print('Default extension set to ' + def_ext)
 
     elif args.command == 'info':
-        print('handle: ' + str(config.get('handle', None)))
-        print('groupID: ' + str(config.get('group', None)))
-        print('contestID: ' + str(config.get('contest', None)))
+        print('Handle: ' + str(config.get('handle', None)))
+        print('Group ID: ' + str(config.get('group', None)))
+        print('Contest ID: ' + str(config.get('contest', None)))
 
     elif args.command == 'login':
         # set login info
@@ -223,7 +224,7 @@ def main():
             )
     elif args.command == 'test':
         if not os.path.isdir('files'):
-            print('Please import problem testcases first by:\n\tcf parse -p a')
+            print('Please import problem test cases first by:\n\tcf parse -p a')
             return
         if len(args.option) == 0:
             print('Please select the source file')
@@ -239,9 +240,9 @@ def main():
                            config.get('contest', None),
                            str(problem).upper())
         else:
-            splitted = re.split(r'(\D+)', problem)
-            cf_parse.parse(config.get('group', None), splitted[0], str(
-                splitted[1]+splitted[2]).upper())
+            split = re.split(r'(\D+)', problem)
+            cf_parse.parse(config.get('group', None), split[0], str(
+                split[1] + split[2]).upper())
     elif args.command == 'open':
         if args.prob is None:
             print('Please select problem to open!!')
@@ -251,19 +252,19 @@ def main():
                 webbrowser.open('https://codeforces.com/contest/%s/problem/%s'
                                 % (config.get('contest', None), str(args.prob).upper()), 2)
             else:
-                splitted = re.split(r'(\D+)', args.prob)
+                split = re.split(r'(\D+)', args.prob)
                 webbrowser.open('https://codeforces.com/contest/%s/problem/%s'
-                                % (splitted[0], str(splitted[1]+splitted[2]).upper()), 2)
+                                % (split[0], str(split[1] + split[2]).upper()), 2)
         else:
             if len(args.prob) < 3:
                 webbrowser.open('https://codeforces.com/group/%s/contest/%s/problem/%s'
                                 % (config.get('group', None), config.get('contest', None),
                                    str(args.prob).upper()), 2)
             else:
-                splitted = re.split(r'(\D+)', args.prob)
+                split = re.split(r'(\D+)', args.prob)
                 webbrowser.open('https://codeforces.com/group/%s/contest/%s/problem/%s'
-                                % (config.get('contest', None), splitted[0],
-                                   str(splitted[1]+splitted[2]).upper()), 2)
+                                % (config.get('contest', None), split[0],
+                                   str(split[1] + split[2]).upper()), 2)
     elif args.command == 'hack':
         if 'standings' in args.option:
             if args.contest is None:
@@ -292,6 +293,6 @@ def main():
                 os.path.dirname(os.path.abspath(__file__))))
         os.system('source /etc/bash_completion.d/cf')
     elif args.command == 'version':
-        print('cf-submit %s' % (__version__))
+        print('cf-submit %s' % __version__)
     else:
         print('UNKNOWN COMMAND')

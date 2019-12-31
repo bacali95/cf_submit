@@ -2,16 +2,16 @@ import sys
 import time
 import re
 
-from .cf_colors import colors
+from .cf_colors import Colors
 from .codeforces import CodeforcesAPI
-from .cf_utils import safeListGet
+from .cf_utils import safe_list_get
 
 codeforces = CodeforcesAPI()
 
 
 # submissions
 def get_submission_data(handle):
-    submission = safeListGet(codeforces.userSubmissions(handle, count=1), 0)
+    submission = safe_list_get(codeforces.userSubmissions(handle, count=1), 0)
     if submission is None:
         print('Connection Error!')
     # check if verdict exists (in queue if not)
@@ -24,7 +24,7 @@ def get_submission_data(handle):
 def peek(handle):
     submission = get_submission_data(handle)
     if not hasattr(submission.problem, 'contestId'):
-        setattr(submission.problem, 'contestId',  'guru')
+        setattr(submission.problem, 'contestId', 'guru')
     problem = '%s%s' % (submission.problem.contestId, submission.problem.index)
     if submission.verdict == 'TESTING':
         print('Submission %s to problem %s: %s'
@@ -47,7 +47,7 @@ def watch(handle):
     while True:
         submission = get_submission_data(handle)
         if not hasattr(submission.problem, 'contestId'):
-            setattr(submission.problem, 'contestId',  'guru')
+            setattr(submission.problem, 'contestId', 'guru')
         problem = '%s%s' % (submission.problem.contestId,
                             submission.problem.index)
         if submission.verdict not in ['TESTING', 'IN QUEUE']:
@@ -72,7 +72,7 @@ def watch(handle):
 
 # submit problem
 
-def submit_problem(browser, group, contest, lang, source, guru):
+def submit_problem(browser, contest, lang, source, guru):
     # get form
     submission = browser.get_form(class_='submit-form')
     if submission is None:
@@ -81,40 +81,39 @@ def submit_problem(browser, group, contest, lang, source, guru):
 
     # submit form
     submission['sourceFile'] = source
-    langcode = None
     if lang == 'cpp':
         # GNU G++14 6.2.0
-        langcode = '50'
+        lang_code = '50'
         # GNU G++11 5.1.0
-        # langcode = '42'
+        # lang_code = '42'
     elif lang == 'c':
         # GNU GCC C11 5.1.0
-        langcode = '43'
+        lang_code = '43'
     elif lang == 'd':
-        langcode = '28'
+        lang_code = '28'
     elif lang == 'py':
         # python 2.7.12
-        # langcode = '7'
+        # lang_code = '7'
         # python 3.5.2
-        langcode = '31'
+        lang_code = '31'
     elif lang == 'rb':
         # Ruby 2.0.0p645
-        langcode = '8'
+        lang_code = '8'
     elif lang == 'kt':
-        langcode = '48'
+        lang_code = '48'
     elif lang == 'java':
         # Java 1.8.0_112
-        langcode = '36'
+        lang_code = '36'
     elif lang == 'scala':
-        langcode = '20'
+        lang_code = '20'
     elif lang == 'rs':
-        langcode = '49'
+        lang_code = '49'
     elif lang == 'php':
-        langcode = '6'
+        lang_code = '6'
     else:
         print('Unknown Language')
         return False
-    submission['programTypeId'] = langcode
+    submission['programTypeId'] = lang_code
 
     # check acmsguru
     if guru != -1:
@@ -133,8 +132,7 @@ def submit_problem(browser, group, contest, lang, source, guru):
     countdown_timer = browser.parsed.find_all(
         'span', class_='contest-state-regular countdown before-contest-' + contest + '-finish')
     if len(countdown_timer) > 0:
-        print('%sTIME LEFT: %s%s' %
-              (colors.BOLD, str(countdown_timer[0].get_text(strip=True)), colors.ENDC))
+        print('%sTIME LEFT: %s%s' % (Colors.BOLD, str(countdown_timer[0].get_text(strip=True)), Colors.END))
 
     return True
 
@@ -166,12 +164,13 @@ def submit(browser, handle, group, contest, problem, lang, source, show, guru):
                      % (contest, problem.upper()))
 
     # show submission
-    if submit_problem(browser, group, contest, lang, source, pid) and show:
+    if submit_problem(browser, contest, lang, source, pid) and show:
         watch(handle)
 
 
 # submit, possibly len(args) > 1
-def submit_files(browser, defaulthandle, defaultgroup, defaultcontest, defaultprob, defext, defaultlang, args, show, guru):
+def submit_files(browser, default_handle, default_group, default_contest, default_prob, def_ext, default_lang,
+                 args, show, guru):
     # if len == 0, query for file
     if len(args) == 0:
         args.append(input('File to submit: '))
@@ -181,38 +180,38 @@ def submit_files(browser, defaulthandle, defaultgroup, defaultcontest, defaultpr
         info = source.split('.')
         # single filename
         if source.find('.') == -1:
-            info.append(defext)
-            source += '.' + defext
+            info.append(def_ext)
+            source += '.' + def_ext
 
         # check language
-        if defaultlang is not None:
-            info[-1] = defaultlang
+        if default_lang is not None:
+            info[-1] = default_lang
 
         # submit problem
-        if defaultprob is not None:
-            if len(defaultprob) == 1:
+        if default_prob is not None:
+            if len(default_prob) == 1:
                 # letter only
-                submit(browser, defaulthandle, defaultgroup, defaultcontest,
-                       defaultprob, info[-1], source, show, guru)
-            elif len(defaultprob) == 2:
+                submit(browser, default_handle, default_group, default_contest,
+                       default_prob, info[-1], source, show, guru)
+            elif len(default_prob) == 2:
                 # letter + number (?)
-                submit(browser, defaulthandle, defaultgroup, defaultcontest,
-                       defaultprob, info[-1], source, show, guru)
+                submit(browser, default_handle, default_group, default_contest,
+                       default_prob, info[-1], source, show, guru)
             else:
                 #  parse string
-                splitted = re.split(r'(\D+)', defaultprob)
-                if len(splitted) == 3 and len(splitted[1]) == 1 and len(splitted[2]) == 0:
+                split = re.split(r'(\D+)', default_prob)
+                if len(split) == 3 and len(split[1]) == 1 and len(split[2]) == 0:
                     # probably a good string
-                    submit(browser, defaulthandle, defaultgroup,
-                           splitted[0], splitted[1], info[-1], source, show, guru)
+                    submit(browser, default_handle, default_group,
+                           split[0], split[1], info[-1], source, show, guru)
                 else:
                     print('cannot understand the problem specified')
 
         elif len(info) == 2:
             if guru:
                 # ACMSGURU
-                submit(browser, defaulthandle, defaultgroup,
-                       defaultcontest, info[0], info[1], source, show, guru)
+                submit(browser, default_handle, default_group,
+                       default_contest, info[0], info[1], source, show, guru)
             else:
                 # CODEFORCES
                 # try to parse info[0]
@@ -221,18 +220,17 @@ def submit_files(browser, defaulthandle, defaultgroup, defaultcontest, defaultpr
                     info[0] = info[0][2:]
                 if len(info[0]) == 1:
                     # only the letter, use default contest
-                    submit(browser, defaulthandle, defaultgroup,
-                           defaultcontest, info[0], info[1], source, show, guru)
+                    submit(browser, default_handle, default_group,
+                           default_contest, info[0], info[1], source, show, guru)
                 else:
                     # contest is included, so parse
-                    splitted = re.split(r'(\D+)', info[0])
-                    if len(splitted) == 3 and len(splitted[1]) == 1 and len(splitted[2]) == 0:
+                    split = re.split(r'(\D+)', info[0])
+                    if len(split) == 3 and len(split[1]) == 1 and len(split[2]) == 0:
                         # probably good string ?
-                        submit(browser, defaulthandle, defaultgroup,
-                               splitted[0], splitted[1], info[1], source, show, guru)
+                        submit(browser, default_handle, default_group,
+                               split[0], split[1], info[1], source, show, guru)
                     else:
                         print(
                             'cannot parse filename, specify problem with -p or --prob')
-
         else:
             print('cannot parse filename, specify problem with -p or --prob')

@@ -5,16 +5,17 @@ import javalang
 from subprocess import Popen
 from robobrowser import RoboBrowser
 from prettytable import PrettyTable
+from javalang.tree import ClassDeclaration
 
 from . import cf_login
-from .cf_colors import colors
+from .cf_colors import Colors
+from .cf_utils import safe_list_get
 from .codeforces import CodeforcesAPI
 
 dir_path = os.getcwd()
 
 
 # Hack problems
-
 def hack(contest, hack_test, submission_id):
     browser = cf_login.login()
     browser.open('https://codeforces.com/contest/' +
@@ -46,18 +47,18 @@ def comp(source):
               (source, info[0]), shell=True).wait()
         Popen(['mv', info[0], 'workspace']).wait()
     elif lang == 'java':
-        Popen('javac %s' % (source), shell=True).wait()
+        Popen('javac %s' % source, shell=True).wait()
         Popen(['mv', info[0], 'workspace']).wait()
     elif lang == 'kt':
         Popen('kotlinc %s -include-runtime -d %s' %
-              (source, info[0]+'.jar'), shell=True).wait()
-        Popen(['mv', info[0]+'.jar', 'workspace']).wait()
+              (source, info[0] + '.jar'), shell=True).wait()
+        Popen(['mv', info[0] + '.jar', 'workspace']).wait()
     elif lang == 'py':
         Popen(['cp', source, 'workspace']).wait()
 
 
 def init_workspace(generator, tle_generator, checker, correct_solution):
-    print('%sInitializing workspace...%s' % (colors.OKGREEN, colors.ENDC))
+    print('%sInitializing workspace...%s' % (Colors.OK_GREEN, Colors.END))
     Popen(['rm', '-rf', 'workspace']).wait()
     Popen(['mkdir', '-p', 'workspace']).wait()
     comp(generator)
@@ -66,7 +67,7 @@ def init_workspace(generator, tle_generator, checker, correct_solution):
     if tle_generator is not None:
         Popen(['cp', tle_generator, 'workspace']).wait()
         comp(tle_generator)
-    print('%sWorkspace is ready!!%s' % (colors.OKGREEN, colors.ENDC))
+    print('%sWorkspace is ready!!%s' % (Colors.OK_GREEN, Colors.END))
 
 
 def begin_hack(contest, problem, generator, tle_generator, checker, correct_solution, test_number):
@@ -88,7 +89,7 @@ def begin_hack(contest, problem, generator, tle_generator, checker, correct_solu
                  contest + '/status/' + problem.upper())
     max_pages = int(browser.parsed.find_all(class_='page-index')[-1].text)
     print('\n%sHappy Hacking 3:) - max pages : %d%s' %
-          (colors.HEADER, max_pages, colors.ENDC))
+          (Colors.HEADER, max_pages, Colors.END))
     for i in range(max_pages, 0, -1):
         try:
             browser = RoboBrowser(parser='lxml')
@@ -102,7 +103,7 @@ def begin_hack(contest, problem, generator, tle_generator, checker, correct_solu
                 tried_solutions = tried_solutions + 1
                 if submission_id in tried_submissions:
                     print('\n%sSubmission %d on page %d/%d already tried!!%s' %
-                          (colors.WARNING, submission_id, i, max_pages, colors.ENDC))
+                          (Colors.WARNING, submission_id, i, max_pages, Colors.END))
                     continue
                 tried_submissions_list.write(str(submission_id) + ' ')
                 tried_submissions_list.flush()
@@ -115,50 +116,48 @@ def begin_hack(contest, problem, generator, tle_generator, checker, correct_solu
                     source = browser.parsed.find_all(
                         'pre', class_='program-source')[0].text
                     file_name = create_file(source, language)
-                    if file_name == '':
+                    if file_name is None:
                         continue
                     print('\n%sHacked : %d, %sFailed : %d, %sTotal : %d%s'
-                          % (colors.OKGREEN, hacked_solutions, colors.FAIL,
-                             tried_solutions-hacked_solutions,
-                             colors.OKBLUE, tried_solutions, colors.ENDC))
+                          % (Colors.OK_GREEN, hacked_solutions, Colors.FAIL,
+                             tried_solutions - hacked_solutions,
+                             Colors.OK_BLUE, tried_solutions, Colors.END))
                     print('%sTrying to hack a %s solution - %d on page %d/%d...%s'
-                          % (colors.HEADER, language, submission_id, i, max_pages, colors.ENDC))
+                          % (Colors.HEADER, language, submission_id, i, max_pages, Colors.END))
                     print('%sNormal hack process%s' %
-                          (colors.WARNING, colors.ENDC))
+                          (Colors.WARNING, Colors.END))
                     hack_process = Popen(
                         [os.path.join(os.path.dirname(__file__), 'hack_prob.sh'),
                          generator, checker, correct_solution, file_name, language.replace(' ', ''), str(test_number)])
                     hack_process.wait(timeout=10)
                     exit_code = hack_process.returncode
                     if exit_code in [0, 127, 255]:
-                        print('%sSorry, can\'t hack this solution x /' %
-                              (colors.FAIL))
+                        print('%sSorry, can\'t hack this solution x /' % Colors.FAIL)
                     else:
                         test_hack_loc = os.path.join(
                             dir_path, 'workspace', 'failed.txt')
                         if os.path.isfile(test_hack_loc):
                             print('%sHope that will win 3:)%s' %
-                                  (colors.OKGREEN, colors.ENDC))
+                                  (Colors.OK_GREEN, Colors.END))
                             hacked_solutions = hacked_solutions + 1
                             hack(contest, test_hack_loc, submission_id)
                             continue
                     if tle_generator is not None:
                         print('%sTLE hack process%s' %
-                              (colors.WARNING, colors.ENDC))
+                              (Colors.WARNING, Colors.END))
                         hack_process = Popen(
                             [os.path.join(os.path.dirname(__file__), 'hack_prob.sh'),
-                             tle_generator, checker, correct_solution, file_name, language.replace(' ', ''), str(test_number)])
+                             tle_generator, checker, correct_solution, file_name, language.replace(' ', ''),
+                             str(test_number)])
                         hack_process.wait(timeout=10)
                         exit_code = hack_process.returncode
                         if exit_code in [0, 127, 255]:
-                            print('%sSorry, can\'t hack this solution x /' %
-                                  (colors.FAIL))
+                            print('%sSorry, can\'t hack this solution x /' % Colors.FAIL)
                         else:
                             hack_source_loc = os.path.join(
                                 dir_path, 'workspace', tle_generator)
                             if os.path.isfile(hack_source_loc):
-                                print('%sHope that will win 3:)%s' %
-                                      (colors.OKGREEN, colors.ENDC))
+                                print('%sHope that will win 3:)%s' % (Colors.OK_GREEN, Colors.END))
                                 hacked_solutions = hacked_solutions + 1
                                 tle_hack(contest, hack_source_loc,
                                          submission_id)
@@ -168,8 +167,8 @@ def begin_hack(contest, problem, generator, tle_generator, checker, correct_solu
         except Exception:
             continue
     print('\n%sRESULT => %sHacked : %d, %sFailed : %d, %sTotal : %d'
-          % (colors.HEADER, colors.OKGREEN, hacked_solutions, colors.FAIL,
-             tried_solutions-hacked_solutions, colors.OKBLUE, tried_solutions))
+          % (Colors.HEADER, Colors.OK_GREEN, hacked_solutions, Colors.FAIL,
+             tried_solutions - hacked_solutions, Colors.OK_BLUE, tried_solutions))
 
 
 def create_file(source, language):
@@ -183,16 +182,16 @@ def create_file(source, language):
         try:
             tree = javalang.parse.parse(source)
             name = next(klass.name for klass in tree.types
-                        if isinstance(klass, javalang.tree.ClassDeclaration)
+                        if isinstance(klass, ClassDeclaration)
                         for m in klass.methods
                         if m.name == 'main' and m.modifiers.issuperset({'public', 'static'}))
             file_name = name + '.java'
-        except Exception:
-            return ''
+        except TypeError:
+            return None
     elif re.match(r'(.)*Py(.)*', language):
         file_name = 'noncorrect.py'
     else:
-        return ''
+        return None
 
     for_hack_source = open(os.path.join(dir_path, 'workspace', file_name), 'w')
     for_hack_source.write(source)
@@ -206,7 +205,7 @@ def print_standings(contest, limit, show_all):
         return
     codeforces = CodeforcesAPI()
     standings = codeforces.contestStandings(
-        contest, count=None, showUnofficial=True)
+        contest, count=None, show_unofficial=True)
     rows = standings.rows
     print('Contest:\n   Id:   %s\n   Name: %s' %
           (contest, standings.contest.name))
@@ -216,12 +215,10 @@ def print_standings(contest, limit, show_all):
     standings.align['Name'] = 'l'
     standings.align['Hacks'] = 'l'
     for row in rows:
-        handle = None
         if row.party.ghost is True:
             handle = row.party.teamName
         else:
-            handle = safe_list_get(row.party.members, 0, {
-                                   'handle': None}).handle
+            handle = safe_list_get(row.party.members, 0, {'handle': None}).handle
         entry = {
             'handle': handle,
             'successfulHackCount': row.successfulHackCount,
@@ -229,18 +226,14 @@ def print_standings(contest, limit, show_all):
         }
         data.append(entry)
 
-    data.sort(key=lambda item: item['unsuccessfulHackCount'])
-    data.sort(key=lambda item: item['successfulHackCount'], reverse=True)
+    data.sort(key=lambda elem: elem['unsuccessfulHackCount'])
+    data.sort(key=lambda elem: elem['successfulHackCount'], reverse=True)
     for i, item in enumerate(data):
         if i >= limit and not show_all:
             break
         standings.add_row(
-            [i+1, item['handle'], '+{} : -{}'.format(item['successfulHackCount'], item['unsuccessfulHackCount'])])
+            [i + 1, item['handle'], '+{} : -{}'.format(
+                item['successfulHackCount'], item['unsuccessfulHackCount']
+            )]
+        )
     print(standings.get_string(sortby='Rank'))
-
-
-def safe_list_get(l, idx, default):
-    try:
-        return l[idx]
-    except IndexError:
-        return default

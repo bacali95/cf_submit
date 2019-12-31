@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+
 from cf_submit import cf_main
 
 if __name__ == '__main__':

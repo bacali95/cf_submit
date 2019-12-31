@@ -5,3 +5,4 @@ codeforces_tools.egg-info
 __pycache__
 *.backup
 .vscode
+.idea

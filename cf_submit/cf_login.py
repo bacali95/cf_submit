@@ -3,14 +3,11 @@ import random
 import getpass
 from robobrowser import RoboBrowser
 
-from . import cf_utils
+from .cf_utils import write_data_to_file, read_data_from_file, Obj
 
 root = '7'
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
 config_loc = os.path.join(cache_loc, 'config.json')
-config = cf_utils.readDataFromFile(config_loc)
-if config is None:
-    config = dict()
 
 
 # converter
@@ -49,7 +46,6 @@ def encode(s):
 
 
 # set login
-
 def set_login(handle=None):
     if handle is None:
         handle = input('Handle: ')
@@ -68,17 +64,18 @@ def set_login(handle=None):
         print('Login Failed.')
         return
     else:
+        config = read_data_from_file(config_loc)
         config['handle'] = handle
         config['password'] = encode(password)
-        cf_utils.writeDataToFile(config, config_loc)
+        write_data_to_file(config, config_loc)
         print('Successfully logged in as ' + handle)
 
 
 # login
-
 def login():
-    handle = config['handle']
-    password = decode(config.get('password', None))
+    config = Obj(read_data_from_file(config_loc))
+    handle = config.handle
+    password = decode(config.password or None)
 
     browser = RoboBrowser(parser='lxml')
     browser.open('http://codeforces.com/enter')
@@ -87,8 +84,7 @@ def login():
     enter_form['password'] = password
     browser.submit_form(enter_form)
 
-    checks = list(map(lambda x: x.getText()[
-                  1:].strip(), browser.select('div.caption.titled')))
+    checks = list(map(lambda x: x.getText()[1:].strip(), browser.select('div.caption.titled')))
     if handle not in checks:
         print('Login Corrupted.')
         return None

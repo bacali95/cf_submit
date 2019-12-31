@@ -1,24 +1,24 @@
 import re
 from prettytable import PrettyTable
 
-from .cf_colors import colors
+from .cf_colors import Colors
 from . import cf_login
 
 
-def makeascii(s):
+def makeAscii(s):
     return re.sub(r'[^\x00-\x7f]', r'?', s)
 
 
 # print friends standings in specified contest
 # parse html
 # gym contest
-def print_standings(group, contest, verbose, top, sort, showall):
+def print_standings(group, contest, verbose, top, sort, show_all):
     # requires login
     browser = cf_login.login()
     if group is not None:
         # group contest contest
         url = 'http://codeforces.com/group/' + \
-            group + '/contest/' + contest + '/standings'
+              group + '/contest/' + contest + '/standings'
     elif len(str(contest)) >= 6:
         # gym contest
         url = 'http://codeforces.com/gym/' + contest + '/standings'
@@ -28,32 +28,32 @@ def print_standings(group, contest, verbose, top, sort, showall):
     # check if friends
     if group is not None:
         url += '/groupmates/true'
-    elif showall is False:
+    elif show_all is False:
         url += '/friends/true'
     else:
         url += '/page/1'
     browser.open(url)
     raw_html = browser.parsed
     # get standings table
-    handledict = {}
+    handle_dict = {}
     mellon = raw_html.find('table', class_='standings').find_all('tr')
 
     standings = PrettyTable()
 
     # get header
-    firstpart = len(mellon[0].find_all('th')) - len(mellon[0].find_all('a'))
+    first_part = len(mellon[0].find_all('th')) - len(mellon[0].find_all('a'))
     header = []
     if verbose:
-        for hcell in mellon[0].find_all('th')[:firstpart]:
-            hcellstr = str(hcell.get_text(strip=True))
-            if hcellstr == '*':
-                hcellstr = 'Hacks'
-            header.append(hcellstr)
+        for h_cell in mellon[0].find_all('th')[:first_part]:
+            h_cell_str = str(h_cell.get_text(strip=True))
+            if h_cell_str == '*':
+                h_cell_str = 'Hacks'
+            header.append(h_cell_str)
     else:
-        for hcell in mellon[0].find_all('th')[1:3]:
-            header.append(str(hcell.get_text(strip=True)))
-    for hcell in mellon[0].find_all('a'):
-        header.append(str(hcell.get_text(strip=True)))
+        for h_cell in mellon[0].find_all('th')[1:3]:
+            header.append(str(h_cell.get_text(strip=True)))
+    for h_cell in mellon[0].find_all('a'):
+        header.append(str(h_cell.get_text(strip=True)))
     # append sorter to header
     if sort is not None:
         header.append('sorter')
@@ -62,9 +62,9 @@ def print_standings(group, contest, verbose, top, sort, showall):
     id_start = 4
     if not verbose:
         id_start = 0
-        for hcell in mellon[0].find_all('th'):
-            hcellstr = str(hcell.get_text(strip=True))
-            if hcellstr.find('A') != -1:
+        for h_cell in mellon[0].find_all('th'):
+            h_cell_str = str(h_cell.get_text(strip=True))
+            if h_cell_str.find('A') != -1:
                 break
             id_start += 1
 
@@ -72,28 +72,26 @@ def print_standings(group, contest, verbose, top, sort, showall):
     for i, h in enumerate(header):
         fields[h] = i
 
-    # find problemstart and solvecol
-    problemstart = 0
-    while header[problemstart].find('A') == -1:
-        problemstart += 1
-    solvecol = 0
-    while header[solvecol] != '=':
-        solvecol += 1
+    # find problem start and solve column
+    problem_start = 0
+    while header[problem_start].find('A') == -1:
+        problem_start += 1
+    solve_col = 0
+    while header[solve_col] != '=':
+        solve_col += 1
 
     # if sort, use dict
     if sort is not None:
-        handledict = {}
+        handle_dict = {}
 
     # fix top
     top = min(top + 1, len(mellon) - 1)
-    # get rows
-    rankrowlist = mellon[1:top]
 
     # iterate
-    for ami in rankrowlist:
+    for ami in mellon[1:top]:
         virtual = True
         row = ami.find_all('td')
-        tablerow = []
+        table_row = []
         # get place
         # this cell has problems
         rank = str(row[0].get_text(strip=True))
@@ -102,16 +100,16 @@ def print_standings(group, contest, verbose, top, sort, showall):
         if verbose:
             if rank.find(')') != -1:
                 rank = rank[rank.find('(') + 1:rank.find(')')]
-            tablerow.append(rank)
+            table_row.append(rank)
 
         # get name
         party = str(row[1].get_text(strip=True))
         if verbose:
             team = []
             # check if virtual time colon
-            virtualtime = None
+            virtual_time = None
             if party[-3] == ':':
-                virtualtime = party[-5:]
+                virtual_time = party[-5:]
                 party = party[:-5]
 
             # check if there are still colons left if yes, split at last colon
@@ -124,21 +122,21 @@ def print_standings(group, contest, verbose, top, sort, showall):
                 # split
                 party = party.split(':')
                 # get first part (team name)
-                teamname = party[0]
-                for partypart in party[1:-1]:
-                    teamname += ':' + partypart
-                if len(teamname + tail) > 24:
-                    teamname = teamname[:20] + '...'
-                teamname += tail + ':'
-                team.append(teamname)
+                team_name = party[0]
+                for party_part in party[1:-1]:
+                    team_name += ':' + party_part
+                if len(team_name + tail) > 24:
+                    team_name = team_name[:20] + '...'
+                team_name += tail + ':'
+                team.append(team_name)
                 # split rest of team members
                 for member in party[-1].split(','):
                     team.append(member.strip())
             else:
                 team.append(party)
             # append time if it exists'''
-            if virtualtime is not None:
-                team.append(virtualtime)
+            if virtual_time is not None:
+                team.append(virtual_time)
             # join party
             party = '\n'.join(team)
         else:
@@ -151,32 +149,32 @@ def print_standings(group, contest, verbose, top, sort, showall):
                     party = party[:-1]
                 # split
                 party = party.split(':')
-                teamname = party[0]
-                for partypart in party[1:-1]:
-                    teamname += ':' + partypart
-                if len(teamname) > 32:
-                    teamname = teamname[:32] + '...'
-                teamname += tail
-                party = teamname
-        tablerow.append(makeascii(party))
+                team_name = party[0]
+                for party_part in party[1:-1]:
+                    team_name += ':' + party_part
+                if len(team_name) > 32:
+                    team_name = team_name[:32] + '...'
+                team_name += tail
+                party = team_name
+        table_row.append(makeAscii(party))
 
         # get points or number of solves
-        tablerow.append(int(str(row[2].get_text(strip=True))))
+        table_row.append(int(str(row[2].get_text(strip=True))))
         # get penalty or hacks
         if verbose:
-            tablerow.append(str(row[3].get_text(strip=True)))
+            table_row.append(str(row[3].get_text(strip=True)))
 
         # get problem submissions
         for cell in row[id_start:]:
-            problemres = str(cell.get_text(strip=True))
-            if virtual and len(problemres) > 5:
+            problem_res = str(cell.get_text(strip=True))
+            if virtual and len(problem_res) > 5:
                 if verbose:
-                    problemres = (problemres[:-5] + '\n' + problemres[-5:])
+                    problem_res = (problem_res[:-5] + '\n' + problem_res[-5:])
                 else:
-                    problemres = problemres[:-5]
+                    problem_res = problem_res[:-5]
             else:
-                problemres = problemres.replace('-', 'WA-')
-            tablerow.append(problemres)
+                problem_res = problem_res.replace('-', 'WA-')
+            table_row.append(problem_res)
 
         # check sort
         if sort is not None:
@@ -188,36 +186,35 @@ def print_standings(group, contest, verbose, top, sort, showall):
                 party = party[:-1]
 
             # check if party exists
-            if party not in handledict:
-                handledict[party] = tablerow
+            if party not in handle_dict:
+                handle_dict[party] = table_row
             else:
                 # update
-                for i in range(problemstart, len(header) - 1):
+                for i in range(problem_start, len(header) - 1):
                     # update if empty or wa
-                    if len(handledict[party][i]) == 0:
-                        handledict[party][i] = tablerow[i]
-                        # check if we should update solvecol
-                        if len(tablerow[i]) != 0 and tablerow[i][0] == '+':
-                            handledict[party][solvecol] += 1
-                    elif handledict[party][i][0] != '+' and len(tablerow[i]) != 0:
-                        totalwa = int(handledict[party][i].split(
+                    if len(handle_dict[party][i]) == 0:
+                        handle_dict[party][i] = table_row[i]
+                        # check if we should update solve_col
+                        if len(table_row[i]) != 0 and table_row[i][0] == '+':
+                            handle_dict[party][solve_col] += 1
+                    elif handle_dict[party][i][0] != '+' and len(table_row[i]) != 0:
+                        total_wa = int(handle_dict[party][i].split(
                             '\n')[0].split('-')[1])
-                        if tablerow[i].find('-') != -1:
+                        if table_row[i].find('-') != -1:
                             # add wa
-                            totalwa += int(tablerow[i].split('\n')
-                                           [0].split('-')[1])
-                            handledict[party][i] = 'WA-' + str(totalwa)
+                            total_wa += int(table_row[i].split('\n')[0].split('-')[1])
+                            handle_dict[party][i] = 'WA-' + str(total_wa)
                         else:
                             # add wa to correct submission
-                            correct = tablerow[i].split('\n')[0][1:]
+                            correct = table_row[i].split('\n')[0][1:]
                             if len(correct) != 0:
-                                totalwa += int(correct)
-                            handledict[party][i] = '+' + str(totalwa)
-                            # update solvecol
-                            handledict[party][solvecol] += 1
+                                total_wa += int(correct)
+                            handle_dict[party][i] = '+' + str(total_wa)
+                            # update solve_col
+                            handle_dict[party][solve_col] += 1
         else:
-            # NO sort, add to tablerow
-            standings.add_row(tablerow)
+            # NO sort, add to table_row
+            standings.add_row(table_row)
 
     # standings properties
     if verbose:
@@ -232,18 +229,18 @@ def print_standings(group, contest, verbose, top, sort, showall):
         print(standings)
 
     elif sort == 'solves':
-        # add rowinfo to standings
-        for _, rowinfo in handledict.items():
+        # add row_info to standings
+        for _, row_info in handle_dict.items():
             # append the sorter
-            sortvalue = rowinfo[fields['=']]
+            sort_value = row_info[fields['=']]
             if 'Penalty' in fields:
-                if len(rowinfo[fields['Penalty']]) == 0:
-                    sortvalue = 100000 * sortvalue - 99999
+                if len(row_info[fields['Penalty']]) == 0:
+                    sort_value = 100000 * sort_value - 99999
                 else:
-                    sortvalue = 100000 * sortvalue - \
-                        int(rowinfo[fields['Penalty']])
-            rowinfo.append(sortvalue)
-            standings.add_row(rowinfo)
+                    sort_value = 100000 * sort_value - \
+                                 int(row_info[fields['Penalty']])
+            row_info.append(sort_value)
+            standings.add_row(row_info)
         # print
         print(standings.get_string(
             sortby='sorter',
@@ -258,12 +255,11 @@ def print_standings(group, contest, verbose, top, sort, showall):
         print('this should not have happened. nothing here')
 
     # first check if countdown
-    # boldstart = '\033[1m'
-    # boldend = '\033[0;0m'
+    # bold_start = '\033[1m'
+    # bold_end = '\033[0;0m'
     countdown_timer = raw_html.find_all('span', class_='countdown')
     if len(countdown_timer) > 0:
-        print('%sTIME LEFT: %s%s' %
-              (colors.BOLD, str(countdown_timer[0].get_text(strip=True)), colors.ENDC))
+        print('%sTIME LEFT: %s%s' % (Colors.BOLD, str(countdown_timer[0].get_text(strip=True)), Colors.END))
 
 
 # get time
@@ -284,5 +280,4 @@ def print_time(group, contest):
     if len(countdown_timer) == 0:
         print('Contest ' + contest + ' is over')
     else:
-        print('%sTIME LEFT: %s%s' %
-              (colors.BOLD, str(countdown_timer[0].get_text(strip=True)), colors.ENDC))
+        print('%sTIME LEFT: %s%s' % (Colors.BOLD, str(countdown_timer[0].get_text(strip=True)), Colors.END))

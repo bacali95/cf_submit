@@ -25,7 +25,8 @@ setup(
         'lxml',
         'robobrowser',
         'prettytable',
-        'javalang'
+        'javalang',
+        'requests'
     ],
     classifiers=[
         'Programming Language :: Python :: 3',

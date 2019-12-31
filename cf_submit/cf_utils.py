@@ -2,48 +2,59 @@ import json
 import os
 import random
 import string
+from json import JSONDecodeError
 
 
-class obj(object):
+class Obj(object):
     def __init__(self, d):
         for a, b in d.items():
             if isinstance(b, (list, tuple)):
-                setattr(self, a, [obj(x) if isinstance(
+                setattr(self, a, [Obj(x) if isinstance(
                     x, dict) else x for x in b])
             else:
-                setattr(self, a, obj(b)
-                        if isinstance(b, dict) else b)
+                setattr(self, a, Obj(b) if isinstance(b, dict) else b)
 
     def toString(self):
         return json.dumps(self, default=lambda x: x.__dict__, indent=2)
 
 
-def writeDataToFile(data, file_name):
-    if file_name:
+def obj_to_dict(obj):
+    if isinstance(obj, (list, tuple)):
+        return [obj_to_dict(o) for o in obj]
+    elif isinstance(obj, Obj):
+        res = dict()
+        for key, value in obj.__dict__.items():
+            res[key] = obj_to_dict(value)
+        return res
+    else:
+        return obj
+
+
+def write_data_to_file(data, file_name):
+    try:
         with open(file_name, 'w') as file:
-            if isinstance(data, dict):
-                json.dump(data, file, indent=2)
-            elif isinstance(data, (list, tuple)):
-                json.dump([d.__dict__ for d in data], file, indent=2)
-            else:
-                json.dump(data.__dict__, file, indent=2)
+            json.dump(data, file, indent=2)
             return True
-    return False
+    except TypeError or OSError:
+        return False
 
 
-def readDataFromFile(file_name):
-    if file_name and os.path.isfile(file_name):
-        with open(file_name, 'r') as file:
-            return json.load(file)
-    return None
+def read_data_from_file(file_name):
+    try:
+        if os.path.isfile(file_name):
+            with open(file_name, 'r') as file:
+                return json.load(file)
+        else:
+            return None
+    except JSONDecodeError or OSError or FileNotFoundError:
+        return None
 
 
-def randomDigitsString(stringLength=10):
-    letters = string.digits
-    return ''.join(random.choice(letters) for i in range(stringLength))
+def random_digits_string(length=10):
+    return ''.join(random.choice(string.digits) for _ in range(length))
 
 
-def safeListGet(list_, index, default=None):
+def safe_list_get(list_, index, default=None):
     try:
         return list_[index]
     except IndexError:
