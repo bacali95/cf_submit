@@ -1,7 +1,6 @@
 import os
 import re
 import time
-import requests
 import javalang
 from subprocess import Popen
 from robobrowser import RoboBrowser

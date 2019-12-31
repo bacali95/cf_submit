@@ -1,8 +1,6 @@
 import sys
 import time
-import json
 import re
-import requests
 
 from .cf_colors import colors
 from .codeforces import CodeforcesAPI

@@ -38,13 +38,12 @@ class CodeforcesAPI:
         response = requests.get('{}/contest.list'.format(self.baseUrl))
         return [obj(res) for res in response.json()['result']]
 
-    def contestStandings(self, contestId, from_=1, count=10, handles=[], showUnofficial=False):
+    def contestStandings(self, contestId, from_=1, count=10, showUnofficial=False):
         response = requests.get(
             '{}/contest.standings'.format(self.baseUrl), params={
                 'contestId': contestId,
                 'from': from_,
                 'count': count,
-                'handles': handles,
                 'showUnofficial': showUnofficial
             })
         return obj(response.json()['result'])

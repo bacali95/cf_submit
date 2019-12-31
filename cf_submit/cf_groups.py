@@ -75,7 +75,7 @@ def load_groups(pretty_off):
 
     if pretty_off:
         ids = [id for id in groups]
-        print(*ids)
+        print(' '.join(map(str, ids)))
     else:
         print_pretty(groups.values())
 

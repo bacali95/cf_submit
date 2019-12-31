@@ -1,5 +1,4 @@
 import os
-import requests
 from prettytable import PrettyTable
 from threading import Thread
 
