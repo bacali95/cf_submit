@@ -2,7 +2,7 @@
 
 import sys
 
-from cf_submit import cf_main
+from src import cf_main
 
 if __name__ == '__main__':
     try:

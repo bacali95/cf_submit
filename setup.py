@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(
     name='cf_submit',
-    version='1.2.2',
+    version='1.3.0',
     scripts=['cf'],
     author='Nasreddine Bac Ali',
     author_email='nasreddine.bacali95@gmail.com',
@@ -13,12 +13,11 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/bacali95/cf_submit',
-    packages=['cf_submit'],
+    packages=find_packages(),
     package_data={
-        'cf_submit': [
-            'cf_checker',
-            'auto_complete_cf',
-            'hack_prob.sh'
+        'src': [
+            'bin/cf_checker',
+            'bash_completion/cf'
         ]
     },
     install_requires=[

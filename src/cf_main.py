@@ -109,6 +109,10 @@ def main():
                         type=int, action='store', default=10,
                         help='number of tests')
 
+    parser.add_argument('-r', '--reverse',
+                        action='store_true', default=False,
+                        help='Hacking with reversed submissions')
+
     args = parser.parse_args()
 
     # deal with short commands
@@ -283,13 +287,13 @@ def main():
 
         if len(args.option) == 3:
             cf_hack.begin_hack(config.get('contest', None), args.prob, args.option[0], None,
-                               args.option[1], args.option[2], args.number)
+                               args.option[1], args.option[2], args.number, args.reverse)
         else:
             cf_hack.begin_hack(config.get('contest', None), args.prob, args.option[0], args.option[1],
                                args.option[2], args.option[3], args.number)
     elif args.command == 'completion':
         os.system(
-            'sudo ln -sf {}/auto_complete_cf /etc/bash_completion.d/cf'.format(
+            'sudo ln -sf {}/bash_completion/cf /etc/bash_completion.d/cf'.format(
                 os.path.dirname(os.path.abspath(__file__))))
         os.system('source /etc/bash_completion.d/cf')
     elif args.command == 'version':

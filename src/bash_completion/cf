@@ -6,7 +6,7 @@ _commands(){
 
 _cf() {
   
-  local cur prev
+  local cur
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
   _script_commands=""
@@ -22,7 +22,7 @@ _cf() {
           ;;
         "con" | "gym")
           _script_commands="--id"
-          ;; 
+          ;;
         "gcon")
           _script_commands="--group"
           ;;
@@ -52,7 +52,7 @@ _cf() {
           _script_commands="--pretty-off"
           ;;
         "hack")
-          _script_commands="standings -n --number -p --prob $(ls)"
+          _script_commands="standings -n --number -p --prob -r --reverse $(ls)"
           ;;
         "peek" | "watch" | "time" | "info")
           ;;
@@ -88,11 +88,12 @@ _cf() {
               esac
             ;;
           esac
+          ;;
       esac
       ;;
   esac
 
-  COMPREPLY=( $(compgen -W "${_script_commands}" -- ${cur}) )
+  COMPREPLY=( $(compgen -W "${_script_commands}" -- "${cur}") )
 
   return 0
 }
