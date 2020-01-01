@@ -290,7 +290,7 @@ def main():
                                args.option[1], args.option[2], args.number, args.reverse)
         else:
             cf_hack.begin_hack(config.get('contest', None), args.prob, args.option[0], args.option[1],
-                               args.option[2], args.option[3], args.number)
+                               args.option[2], args.option[3], args.number, args.reverse)
     elif args.command == 'completion':
         os.system(
             'sudo ln -sf {}/bash_completion/cf /etc/bash_completion.d/cf'.format(
