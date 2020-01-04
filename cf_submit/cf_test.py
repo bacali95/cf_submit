@@ -50,13 +50,13 @@ def execute(source, lang, executable, input_file, output_file):
     if lang == 'cpp' or lang == 'c':
         cmd = './%s' % executable
     elif lang == 'java':
-        cmd = ['java', '-DLOCAL', executable]
+        cmd = 'java -DLOCAL %s' % executable
     elif lang == 'kt':
-        cmd = ['java', '-DLOCAL', '-jar', executable + '.jar']
+        cmd = 'java -DLOCAL -jar %s.jar' % executable
     elif lang == 'py2':
-        cmd = ['python2', source]
+        cmd = 'python2 %s ' % source
     elif lang == 'py3':
-        cmd = ['python3', source]
+        cmd = 'python3 %s ' % source
     else:
         print('Sorry language not supported!')
         return exit(-1)
@@ -65,13 +65,13 @@ def execute(source, lang, executable, input_file, output_file):
 
 def comp(source, lang, executable):
     if lang == 'cpp':
-        cmd = ['g++', source, '-DLOCAL', '-O2', '-o', executable]
+        cmd = 'g++ %s -DLOCAL -O2 -o %s' % (source, executable)
     elif lang == 'c':
-        cmd = ['gcc', source, '-DLOCAL', '-O2', '-o', executable]
+        cmd = 'gcc %s -DLOCAL -O2 -o %s' % (source, executable)
     elif lang == 'java':
-        cmd = ['javac', source]
+        cmd = 'javac %s' % source
     elif lang == 'kt':
-        cmd = ['kotlinc', source, '-include-runtime', '-d', executable]
+        cmd = 'javac %s -include-runtime -d %s' % (source, executable)
     else:
         cmd = []
     Popen(cmd, shell=True).wait()

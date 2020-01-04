@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='cf_submit',
-    version='1.3.0',
+    version='1.3.1',
     scripts=['cf'],
     author='Nasreddine Bac Ali',
     author_email='nasreddine.bacali95@gmail.com',
@@ -15,7 +15,7 @@ setup(
     url='https://github.com/bacali95/cf_submit',
     packages=find_packages(),
     package_data={
-        'src': [
+        'cf_submit': [
             'bin/cf_checker',
             'bash_completion/cf'
         ]
