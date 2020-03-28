@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='cf_submit',
-    version='1.3.1',
+    version='1.3.2',
     scripts=['cf'],
     author='Nasreddine Bac Ali',
     author_email='nasreddine.bacali95@gmail.com',
@@ -25,7 +25,8 @@ setup(
         'robobrowser',
         'prettytable',
         'javalang',
-        'requests'
+        'requests',
+        'Werkzeug>=0.16,<1.0'
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
