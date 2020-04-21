@@ -80,6 +80,8 @@ def begin_hack(contest, problem, generator, tle_generator, checker, correct_solu
                         print('%sHope that will win 3:)%s' % (Colors.OK_GREEN, Colors.END))
                         submit_hack(contest, test_hack_loc, submission_id)
                         hacked_solutions = hacked_solutions + 1
+                        tried_submissions_file.write(' %s' % submission_id)
+                        tried_submissions_file.flush()
                         continue
 
                     if tle_generator is not None:
@@ -91,12 +93,13 @@ def begin_hack(contest, problem, generator, tle_generator, checker, correct_solu
                             print('%sHope that will win 3:)%s' % (Colors.OK_GREEN, Colors.END))
                             submit_tle_hack(contest, test_hack_loc, submission_id)
                             hacked_solutions = hacked_solutions + 1
+                            tried_submissions_file.write(' %s' % submission_id)
+                            tried_submissions_file.flush()
                             continue
 
-                    if result != 'PLAYER_SOLUTION_ERROR':
-                        tried_solutions = tried_solutions + 1
-                        tried_submissions_file.write(' %s' % submission_id)
-                        tried_submissions_file.flush()
+                    tried_solutions = tried_solutions + 1
+                    tried_submissions_file.write(' %s' % submission_id)
+                    tried_submissions_file.flush()
         except KeyboardInterrupt:
             time.sleep(2)
             break
@@ -161,15 +164,15 @@ def execute(source, args=None, language=None, input_file=None, output_file=None)
     else:
         print('Sorry language not supported!')
         return exit(-1)
-    process = Popen(cmd + ' '.join(args), stdin=input_file, stdout=output_file, shell=True)
+    process = Popen(cmd + ' '.join(list(map(str, args))), stdin=input_file, stdout=output_file, shell=True)
     process.wait(timeout=10)
     return process.returncode
 
 
 def execute_hack_process(generator, checker, correct_solution, player_solution, player_language, max_tests=1):
-    for _ in range(0, max_tests):
+    for test_index in range(0, max_tests):
         input_file = open('workspace/testing_dir/test.in', 'w')
-        return_code = execute(generator, output_file=input_file)
+        return_code = execute(generator, args=[test_index], output_file=input_file)
         if return_code != 0:
             return 'GENERATOR_ERROR'
 
