@@ -187,11 +187,13 @@ def execute(source, args=None, language=None, input_file=None, output_file=None,
         print('Sorry language not supported!')
         return exit(-1)
     return_code = -1
+    process = None
     try:
         process = Popen(cmd + ' '.join(list(map(str, args))), stdin=input_file, stdout=output_file, shell=True)
         process.wait(int(timeout))
         return_code = process.returncode
     except TimeoutExpired:
+        process.kill()
         return_code = 98989898
     except Exception:
         return_code = -1
