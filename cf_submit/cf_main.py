@@ -1,20 +1,20 @@
-import re
-import os
 import argparse
+import os
+import re
 import webbrowser
 
-from . import cf_login
-from . import cf_problems
+from . import __version__
 from . import cf_contests
-from . import cf_gyms
 from . import cf_groups
+from . import cf_gyms
+from . import cf_hack
+from . import cf_login
+from . import cf_parse
+from . import cf_problems
 from . import cf_standings
 from . import cf_submit
-from . import cf_hack
-from . import cf_parse
 from . import cf_test
 from . import cf_utils
-from . import __version__
 
 
 # main
@@ -71,6 +71,10 @@ def main():
     parser.add_argument('-l', '--lang',
                         action='store', default=None,
                         help='specify language, example: -l cpp11')
+
+    parser.add_argument('--time-limit',
+                        action='store', default=10,
+                        help='specify execution time limit, example: --time-limit 2')
 
     parser.add_argument('-c', '--contest',
                         action='store', default=None,
@@ -286,11 +290,13 @@ def main():
             return
 
         if len(args.option) == 3:
-            cf_hack.begin_hack(config.get('contest', None), args.prob, args.option[0], None,
-                               args.option[1], args.option[2], args.number, args.reverse)
+            cf_hack.begin_hack(contest=config.get('contest', None), problem=args.prob, generator=args.option[0],
+                               tle_generator=None, checker=args.option[1], correct_solution=args.option[2],
+                               max_tests=args.number, reverse=args.reverse, time_limit=args.time_limit)
         else:
-            cf_hack.begin_hack(config.get('contest', None), args.prob, args.option[0], args.option[1],
-                               args.option[2], args.option[3], args.number, args.reverse)
+            cf_hack.begin_hack(contest=config.get('contest', None), problem=args.prob, generator=args.option[0],
+                               tle_generator=args.option[1], checker=args.option[2], correct_solution=args.option[3],
+                               max_tests=args.number, reverse=args.reverse, time_limit=args.time_limit)
     elif args.command == 'completion':
         os.system(
             'sudo ln -sf {}/bash_completion/cf /etc/bash_completion.d/cf'.format(

@@ -1,6 +1,7 @@
+import getpass
 import os
 import random
-import getpass
+
 from robobrowser import RoboBrowser
 
 from .cf_utils import write_data_to_file, read_data_from_file, Obj

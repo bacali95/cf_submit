@@ -1,6 +1,7 @@
 import os
-from prettytable import PrettyTable
 from threading import Thread
+
+from prettytable import PrettyTable
 
 from .cf_utils import read_data_from_file, write_data_to_file, Obj, obj_to_dict
 from .codeforces import CodeforcesAPI

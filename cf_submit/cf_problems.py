@@ -1,8 +1,9 @@
 import os
+
 from prettytable import PrettyTable
 
-from . import cf_utils
 from . import cf_login
+from . import cf_utils
 
 cache_loc = os.path.join(os.environ['HOME'], '.cache', 'cf_submit')
 config_loc = os.path.join(cache_loc, 'config.json')

@@ -1,6 +1,7 @@
+import hashlib
 import os
 import time
-import hashlib
+
 import requests
 
 from .cf_utils import Obj, read_data_from_file, random_digits_string

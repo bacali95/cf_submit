@@ -1,5 +1,5 @@
-import os
 import glob
+import os
 from subprocess import Popen
 
 from .cf_colors import Colors

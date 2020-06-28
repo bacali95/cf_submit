@@ -1,5 +1,6 @@
 import os
 import re
+
 from prettytable import PrettyTable
 
 from . import cf_login

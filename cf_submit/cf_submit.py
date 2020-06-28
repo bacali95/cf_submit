@@ -1,10 +1,10 @@
+import re
 import sys
 import time
-import re
 
 from .cf_colors import Colors
-from .codeforces import CodeforcesAPI
 from .cf_utils import safe_list_get
+from .codeforces import CodeforcesAPI
 
 codeforces = CodeforcesAPI()
 

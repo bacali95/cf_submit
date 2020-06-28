@@ -1,11 +1,12 @@
 import os
 import re
 import time
+from subprocess import Popen, TimeoutExpired
+
 import javalang
-from subprocess import Popen
-from robobrowser import RoboBrowser
-from prettytable import PrettyTable
 from javalang.tree import ClassDeclaration
+from prettytable import PrettyTable
+from robobrowser import RoboBrowser
 
 from . import cf_login
 from .cf_colors import Colors
@@ -16,7 +17,7 @@ dir_path = os.getcwd()
 
 
 # Hack problems
-def begin_hack(contest, problem, generator, tle_generator, checker, correct_solution, max_tests, reverse):
+def begin_hack(contest, problem, generator, tle_generator, checker, correct_solution, max_tests, reverse, time_limit):
     # Preparing Workspace
     init_hack_dir(generator, tle_generator, checker, correct_solution)
     generator = 'workspace/%s' % generator
@@ -35,71 +36,92 @@ def begin_hack(contest, problem, generator, tle_generator, checker, correct_solu
     tried_solutions = 0
     hacked_solutions = 0
 
-    browser = get_browser_for_url('https://codeforces.com/contest/%s/status/%s' % (contest, problem))
+    browser = get_browser_for_url(
+        'https://codeforces.com/contest/%s/status/%s' % (contest, problem))
     max_pages = int(browser.parsed.find_all(class_='page-index')[-1].text)
-    print('\n%sHappy Hacking 3:) - max pages : %s%s' % (Colors.HEADER, max_pages, Colors.END))
+    print('\n%sHappy Hacking 3:) - max pages : %s%s' %
+          (Colors.HEADER, max_pages, Colors.END))
     start = max_pages if reverse else 1
     stop = 0 if reverse else max_pages + 1
     for i in range(start, stop, -1 if reverse else 1):
         try:
-            browser = get_browser_for_url('https://codeforces.com/contest/%s/status/%s/page/%s?order=BY_ARRIVED_DESC'
-                                          % (contest, problem, i))
+            browser = get_browser_for_url(
+                'https://codeforces.com/contest/%s/status/%s/page/%s?order=BY_CONSUMED_TIME_ASC'
+                % (contest, problem, i))
             submissions = browser.parsed.find_all(
                 'table', class_='status-frame-datatable')[0].find_all('tr')[1:]
             for submission in submissions:
-                submission_id = int(submission.find('td', class_='id-cell').find('a').text)
-                if submission_id in tried_submissions:
-                    print('\n%sSubmission %d on page %d/%d already tried!!%s' %
-                          (Colors.WARNING, submission_id, i, max_pages, Colors.END))
-                    continue
-                language = submission.find_all('td')[4].text.strip().replace(' ', '')
-                browser = get_browser_for_url(
-                    'http://codeforces.com/contest/%s/submission/%d' % (contest, submission_id))
-                if len(browser.parsed.find_all('pre', class_='program-source')) > 0:
-                    Popen(['rm', '-rf', 'workspace/testing_dir']).wait()
-                    Popen(['mkdir', '-p', 'workspace/testing_dir']).wait()
-
-                    source = browser.parsed.find_all('pre', class_='program-source')[0].text
-                    player_solution = create_player_solution_file(source, get_language_key(language))
-                    if player_solution is None:
+                try:
+                    submission_id = int(submission.find(
+                        'td', class_='id-cell').find('a').text)
+                    if submission_id in tried_submissions:
+                        print('\n%sSubmission %d on page %d/%d already tried!!%s' %
+                              (Colors.WARNING, submission_id, i, max_pages, Colors.END))
                         continue
+                    language = submission.find_all(
+                        'td')[4].text.strip().replace(' ', '')
+                    browser = get_browser_for_url(
+                        'http://codeforces.com/contest/%s/submission/%d' % (contest, submission_id))
+                    if len(browser.parsed.find_all('pre', class_='program-source')) > 0:
+                        Popen(['rm', '-rf', 'workspace/testing_dir']).wait()
+                        Popen(['mkdir', '-p', 'workspace/testing_dir']).wait()
 
-                    print('\n%sHacked : %d, %sFailed : %d, %sTotal : %d%s'
-                          % (Colors.OK_GREEN, hacked_solutions, Colors.FAIL, tried_solutions - hacked_solutions,
-                             Colors.OK_BLUE, tried_solutions, Colors.END))
-                    print('%sTrying to hack a %s solution - %d on page %d/%d...%s'
-                          % (Colors.HEADER, language, submission_id, i, max_pages, Colors.END))
-                    print('%sNormal hack process%s' % (Colors.WARNING, Colors.END))
+                        source = browser.parsed.find_all(
+                            'pre', class_='program-source')[0].text
+                        player_solution = create_player_solution_file(
+                            source, get_language_key(language))
+                        if player_solution is None:
+                            continue
 
-                    comp(player_solution)
-                    language = get_language_key(language)
-                    result = execute_hack_process(generator, checker, correct_solution, player_solution,
-                                                  language, max_tests)
-                    if result == 'CHECKER_ERROR':
-                        test_hack_loc = os.path.join(dir_path, 'workspace/testing_dir/test.in')
-                        print('%sHope that will win 3:)%s' % (Colors.OK_GREEN, Colors.END))
-                        submit_hack(contest, test_hack_loc, submission_id)
-                        hacked_solutions = hacked_solutions + 1
-                        tried_submissions_file.write(' %s' % submission_id)
-                        tried_submissions_file.flush()
-                        continue
+                        print('\n%sHacked : %d, %sFailed : %d, %sTotal : %d%s'
+                              % (Colors.OK_GREEN, hacked_solutions, Colors.FAIL, tried_solutions - hacked_solutions,
+                                 Colors.OK_BLUE, tried_solutions, Colors.END))
+                        print('%sTrying to hack a %s solution - %d on page %d/%d...%s'
+                              % (Colors.HEADER, language, submission_id, i, max_pages, Colors.END))
+                        print('%sNormal hack process%s' %
+                              (Colors.WARNING, Colors.END))
 
-                    if tle_generator is not None:
-                        print('%sTLE hack process%s' % (Colors.WARNING, Colors.END))
-                        result = execute_hack_process(tle_generator, checker, correct_solution, player_solution,
-                                                      language)
-                        if result in ['CHECKER_ERROR', 'PLAYER_SOLUTION_ERROR']:
-                            test_hack_loc = os.path.join(dir_path, tle_generator)
-                            print('%sHope that will win 3:)%s' % (Colors.OK_GREEN, Colors.END))
-                            submit_tle_hack(contest, test_hack_loc, submission_id)
+                        comp(player_solution)
+                        language = get_language_key(language)
+                        result = execute_hack_process(generator, checker, correct_solution, player_solution,
+                                                      language, time_limit, max_tests)
+                        if result == 'CHECKER_ERROR':
+                            test_hack_loc = os.path.join(
+                                dir_path, 'workspace/testing_dir/test.in')
+                            print('%sHope that will win 3:)%s' %
+                                  (Colors.OK_GREEN, Colors.END))
+                            submit_hack(contest, test_hack_loc, submission_id)
                             hacked_solutions = hacked_solutions + 1
                             tried_submissions_file.write(' %s' % submission_id)
                             tried_submissions_file.flush()
                             continue
 
-                    tried_solutions = tried_solutions + 1
-                    tried_submissions_file.write(' %s' % submission_id)
-                    tried_submissions_file.flush()
+                        if tle_generator is not None:
+                            print(
+                                '%sTLE hack process with time limit %ss %s' % (Colors.WARNING, time_limit, Colors.END))
+                            result = execute_hack_process(tle_generator, checker, correct_solution, player_solution,
+                                                          language, time_limit)
+                            if result in ['CHECKER_ERROR', 'TIME_LIMIT_EXCEEDED']:
+                                test_hack_loc = os.path.join(
+                                    dir_path, tle_generator)
+                                print('%sHope that will win 3:)%s' %
+                                      (Colors.OK_GREEN, Colors.END))
+                                submit_tle_hack(
+                                    contest, test_hack_loc, submission_id)
+                                hacked_solutions = hacked_solutions + 1
+                                tried_submissions_file.write(
+                                    ' %s' % submission_id)
+                                tried_submissions_file.flush()
+                                continue
+
+                        tried_solutions = tried_solutions + 1
+                        tried_submissions_file.write(' %s' % submission_id)
+                        tried_submissions_file.flush()
+                except KeyboardInterrupt:
+                    time.sleep(2)
+                    break
+                except Exception:
+                    continue
         except KeyboardInterrupt:
             time.sleep(2)
             break
@@ -144,7 +166,7 @@ def comp(source):
               shell=True).wait()
 
 
-def execute(source, args=None, language=None, input_file=None, output_file=None):
+def execute(source, args=None, language=None, input_file=None, output_file=None, timeout=10):
     if args is None:
         args = []
     executable = source.split('.')[0]
@@ -164,12 +186,21 @@ def execute(source, args=None, language=None, input_file=None, output_file=None)
     else:
         print('Sorry language not supported!')
         return exit(-1)
-    process = Popen(cmd + ' '.join(list(map(str, args))), stdin=input_file, stdout=output_file, shell=True)
-    process.wait(timeout=10)
-    return process.returncode
+    return_code = -1
+    try:
+        process = Popen(cmd + ' '.join(list(map(str, args))), stdin=input_file, stdout=output_file, shell=True)
+        process.wait(int(timeout))
+        return_code = process.returncode
+    except TimeoutExpired:
+        return_code = 98989898
+    except Exception:
+        return_code = -1
+    finally:
+        return return_code
 
 
-def execute_hack_process(generator, checker, correct_solution, player_solution, player_language, max_tests=1):
+def execute_hack_process(generator, checker, correct_solution, player_solution, player_language, time_limit,
+                         max_tests=1):
     for test_index in range(0, max_tests):
         input_file = open('workspace/testing_dir/test.in', 'w')
         return_code = execute(generator, args=[test_index], output_file=input_file)
@@ -184,7 +215,11 @@ def execute_hack_process(generator, checker, correct_solution, player_solution, 
 
         output_file = open('workspace/testing_dir/test.out', 'w')
         return_code = execute(player_solution, language=player_language, args=['<', 'workspace/testing_dir/test.in'],
-                              output_file=output_file)
+                              output_file=output_file, timeout=time_limit)
+
+        if return_code == 98989898:
+            return 'TIME_LIMIT_EXCEEDED'
+
         if return_code != 0:
             return 'PLAYER_SOLUTION_ERROR'
 

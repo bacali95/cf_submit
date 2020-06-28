@@ -1,8 +1,8 @@
 import os
 from subprocess import Popen
 
-from .cf_colors import Colors
 from . import cf_login
+from .cf_colors import Colors
 
 
 def parse(group, contest, problem):
