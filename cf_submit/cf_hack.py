@@ -68,8 +68,10 @@ def begin_hack(contest, problem, generator, tle_generator, checker, correct_solu
 
                         source = browser.parsed.find_all(
                             'pre', class_='program-source')[0].text
+                        file_name = browser.parsed.find(
+                            'input', class_='filename-field').get('value')
                         player_solution = create_player_solution_file(
-                            source, get_language_key(language))
+                            source, file_name, get_language_key(language))
                         if player_solution is None:
                             continue
 
@@ -156,11 +158,14 @@ def comp(source):
     lang = info[-1]
     f_null = open(os.devnull, 'w')
     if lang == 'cpp':
-        Popen('g++ %s -DONLINE_JUDGE -o %s' % (source, info[0]), stdout=f_null, stderr=f_null, shell=True).wait()
+        Popen('g++ %s -DONLINE_JUDGE -o %s' %
+              (source, info[0]), stdout=f_null, stderr=f_null, shell=True).wait()
     elif lang == 'c':
-        Popen('gcc %s -DONLINE_JUDGE -o %s' % (source, info[0]), stdout=f_null, stderr=f_null, shell=True).wait()
+        Popen('gcc %s -DONLINE_JUDGE -o %s' %
+              (source, info[0]), stdout=f_null, stderr=f_null, shell=True).wait()
     elif lang == 'java':
-        Popen('javac %s' % source, stdout=f_null, stderr=f_null, shell=True).wait()
+        Popen('javac %s' % source, stdout=f_null,
+              stderr=f_null, shell=True).wait()
     elif lang == 'kt':
         Popen('kotlinc %s -include-runtime -d %s' % (source, info[0] + '.jar'), stdout=f_null, stderr=f_null,
               shell=True).wait()
@@ -189,7 +194,8 @@ def execute(source, args=None, language=None, input_file=None, output_file=None,
     return_code = -1
     process = None
     try:
-        process = Popen(cmd + ' '.join(list(map(str, args))), stdin=input_file, stdout=output_file, shell=True)
+        process = Popen(cmd + ' '.join(list(map(str, args))),
+                        stdin=input_file, stdout=output_file, shell=True)
         process.wait(int(timeout))
         return_code = process.returncode
     except TimeoutExpired:
@@ -205,13 +211,15 @@ def execute_hack_process(generator, checker, correct_solution, player_solution, 
                          max_tests=1):
     for test_index in range(0, max_tests):
         input_file = open('workspace/testing_dir/test.in', 'w')
-        return_code = execute(generator, args=[test_index], output_file=input_file)
+        return_code = execute(
+            generator, args=[test_index], output_file=input_file)
         if return_code != 0:
             return 'GENERATOR_ERROR'
 
         input_file = open('workspace/testing_dir/test.in', 'r')
         answer_file = open('workspace/testing_dir/test.ans', 'w')
-        return_code = execute(correct_solution, input_file=input_file, output_file=answer_file)
+        return_code = execute(
+            correct_solution, input_file=input_file, output_file=answer_file)
         if return_code != 0:
             return 'CORRECT_SOLUTION_ERROR'
 
@@ -263,8 +271,6 @@ def get_language_key(language):
         return 'cpp'
     elif re.match(r'(.)*GNU(.)*', language):
         return 'c'
-    elif re.match(r'(.)*Kotlin(.)*', language):
-        return 'c'
     elif re.match(r'(.)*Java(.)*', language):
         return 'java'
     elif re.match(r'(.)*Kotlin(.)*', language):
@@ -277,29 +283,11 @@ def get_language_key(language):
         return None
 
 
-def create_player_solution_file(source, language):
-    if language == 'cpp':
-        file_name = 'noncorrect.cpp'
-    elif language == 'c':
-        file_name = 'noncorrect.c'
-    elif language == 'kt':
-        file_name = 'noncorrect.kt'
-        source = 'package workspace.testing_dir;\n' + source
-    elif language == 'java':
-        try:
-            tree = javalang.parse.parse(source)
-            name = next(klass.name for klass in tree.types
-                        if isinstance(klass, ClassDeclaration)
-                        for m in klass.methods
-                        if m.name == 'main' and m.modifiers.issuperset({'public', 'static'}))
-            file_name = name + '.java'
-            source = 'package workspace.testing_dir;\n' + source
-        except TypeError:
-            return None
-    elif language in ['py2', 'py3']:
-        file_name = 'noncorrect.py'
-    else:
+def create_player_solution_file(source, file_name, language):
+    if language not in ['cpp', 'c', 'java', 'kt', 'py2', 'py3']:
         return None
+    if language == 'java':
+        source = 'package workspace.testing_dir;\n\n' + source
     file_name = 'workspace/testing_dir/%s' % file_name
     for_hack_source = open(file_name, 'w')
     for_hack_source.write(source)
@@ -326,7 +314,8 @@ def print_standings(contest, limit, show_all):
         if row.party.ghost is True:
             handle = row.party.teamName
         else:
-            handle = safe_list_get(row.party.members, 0, {'handle': None}).handle
+            handle = safe_list_get(row.party.members, 0, {
+                'handle': None}).handle
         entry = {
             'handle': handle,
             'successfulHackCount': row.successfulHackCount,
