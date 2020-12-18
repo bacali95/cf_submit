@@ -82,10 +82,8 @@ def submit_problem(browser, contest, lang, source, guru):
     # submit form
     submission['sourceFile'] = source
     if lang == 'cpp':
-        # GNU G++14 6.2.0
-        lang_code = '50'
-        # GNU G++11 5.1.0
-        # lang_code = '42'
+        # GNU G++17 7.3.0
+        lang_code = '54'
     elif lang == 'c':
         # GNU GCC C11 5.1.0
         lang_code = '43'
@@ -100,10 +98,11 @@ def submit_problem(browser, contest, lang, source, guru):
         # Ruby 2.0.0p645
         lang_code = '8'
     elif lang == 'kt':
+        # Kotlin 1.4.0
         lang_code = '48'
     elif lang == 'java':
-        # Java 1.8.0_112
-        lang_code = '36'
+        # Java 11.0.6
+        lang_code = '60'
     elif lang == 'scala':
         lang_code = '20'
     elif lang == 'rs':
@@ -132,7 +131,8 @@ def submit_problem(browser, contest, lang, source, guru):
     countdown_timer = browser.parsed.find_all(
         'span', class_='contest-state-regular countdown before-contest-' + contest + '-finish')
     if len(countdown_timer) > 0:
-        print('%sTIME LEFT: %s%s' % (Colors.BOLD, str(countdown_timer[0].get_text(strip=True)), Colors.END))
+        print('%sTIME LEFT: %s%s' % (Colors.BOLD, str(
+            countdown_timer[0].get_text(strip=True)), Colors.END))
 
     return True
 
