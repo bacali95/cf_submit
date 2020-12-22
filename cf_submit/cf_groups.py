@@ -20,8 +20,7 @@ def refresh_contests_data(group):
     contests = []
     for row in rows:
         contest = Obj({})
-        m = re.search('data-contestid=".*"', str(row))
-        setattr(contest, 'id', m.group(0).replace('data-contestid="', '')[:-1])
+        setattr(contest, 'id', row['data-contestid'])
         setattr(contest, 'name', row.find_all(
             'td')[0].text.split('\n')[1].strip())
         contests.append(contest)
