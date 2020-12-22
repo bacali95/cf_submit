@@ -22,7 +22,8 @@ def refresh_contests_data(group):
         contest = Obj({})
         m = re.search('data-contestid=".*"', str(row))
         setattr(contest, 'id', m.group(0).replace('data-contestid="', '')[:-1])
-        setattr(contest, 'name', row.find_all('td')[0].text.split('\n')[1].strip())
+        setattr(contest, 'name', row.find_all(
+            'td')[0].text.split('\n')[1].strip())
         contests.append(contest)
     return contests
 
@@ -30,17 +31,19 @@ def refresh_contests_data(group):
 def refresh_groups_data():
     browser = cf_login.login()
     config = read_data_from_file(config_loc)
-    browser.open('https://codeforces.com/groups/with/%s' % (config.get('handle', None)))
+    browser.open('https://codeforces.com/groups/with/%s' %
+                 (config.get('handle', None)))
     raw_html = browser.parsed
-    rows = raw_html.find('div', class_='datatable').find('table').find_all('tr')[1:]
+    rows = raw_html.find('div', class_='datatable').find(
+        'table').find_all('tr')[1:]
     groups = []
     for row in rows:
         if str(row.find_all('td')[2].text).strip() != 'Accepted':
             continue
         group = Obj({})
-        setattr(group, 'id',
-                re.sub(r'.*/group/', '', re.sub(r'/members.*', '', str(row.find('a', class_='groupName')))))
-        setattr(group, 'name', str(row.find('a', class_='groupName').text).strip())
+        link = row.find('a', class_='groupName')
+        setattr(group, 'id', re.sub(r'/group/', '', link['href']))
+        setattr(group, 'name', str(link.text).strip())
         groups.append(group)
     write_data_to_file(obj_to_dict(groups), groups_loc)
 
@@ -49,7 +52,8 @@ def load_contests(group_id, pretty_off):
     groups = [Obj(group) for group in read_data_from_file(groups_loc) or []]
     if len(groups) == 0:
         refresh_groups_data()
-        groups = [Obj(group) for group in read_data_from_file(groups_loc) or []]
+        groups = [Obj(group)
+                  for group in read_data_from_file(groups_loc) or []]
     group = next((group for group in groups if group.id == group_id), None)
     if group is None:
         return
@@ -67,7 +71,8 @@ def load_groups(pretty_off):
     groups = [Obj(group) for group in read_data_from_file(groups_loc) or []]
     if len(groups) == 0:
         refresh_groups_data()
-        groups = [Obj(group) for group in read_data_from_file(groups_loc) or []]
+        groups = [Obj(group)
+                  for group in read_data_from_file(groups_loc) or []]
     if pretty_off:
         print(' '.join(map(str, map(lambda group: group.id, groups))))
     else:
