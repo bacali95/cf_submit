@@ -3,8 +3,6 @@ import re
 import time
 from subprocess import Popen, TimeoutExpired
 
-import javalang
-from javalang.tree import ClassDeclaration
 from prettytable import PrettyTable
 from robobrowser import RoboBrowser
 
